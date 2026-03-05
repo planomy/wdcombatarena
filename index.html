@@ -8,14 +8,22 @@
     
     <!-- Added Compromise.js for accurate grammar/adjective parsing -->
     <script src="https://unpkg.com/compromise"></script>
+    <!-- Added Confetti for Milestones -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Added HTML2PDF for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@400;700&family=Lexend:wght@300;400;600&family=JetBrains+Mono&display=swap');
 
         body {
-            font-family: 'Inter', sans-serif;
             transition: background-color 0.3s, color 0.3s;
         }
+
+        /* Typography Toggles */
+        .font-sans { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Merriweather', serif; }
+        .font-lexend { font-family: 'Lexend', sans-serif; }
 
         .dark { background-color: #0f172a; color: #f1f5f9; }
 
@@ -86,9 +94,13 @@
         /* Year Level Tabs */
         .yr-tab { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; background: #1e293b; border: 1px solid #334155; color: #64748b; }
         .yr-tab.active { background: #4f46e5; border-color: #818cf8; color: white; }
+
+        /* Zen Focus Mode */
+        header, #sidebar, #legend { transition: opacity 0.5s ease-in-out; }
+        .zen-focus header, .zen-focus #sidebar, .zen-focus #legend { opacity: 0.15; pointer-events: none; }
     </style>
 </head>
-<body class="dark min-h-screen flex flex-col">
+<body class="dark min-h-screen flex flex-col font-sans">
 
     <div id="global-tooltip" class="fixed z-[9999] w-[400px] max-w-[92vw] p-4 rounded-xl tooltip-popup pointer-events-none shadow-2xl"></div>
 
@@ -129,7 +141,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest">Prompt</label>
+                    <div class="flex justify-between items-end mb-3 mt-2">
+                        <label class="text-sm font-medium text-slate-400 uppercase tracking-widest">Time Limit: <span id="time-val" class="text-blue-400 font-bold">35 mins</span></label>
+                        <button id="no-limit-btn" onclick="toggleNoLimit()" class="text-[10px] font-bold px-3 py-1 rounded bg-slate-800 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700 transition uppercase tracking-wider">No Limit</button>
+                    </div>
+                    <input id="time-slider" type="range" min="5" max="120" step="5" value="35" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" oninput="updateTimeSliderValue(this.value)">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest mt-2">Prompt</label>
                     <div class="flex gap-2 mb-2">
                         <input id="prompt-input" type="text" placeholder="Type your own prompt here..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
                         <button onclick="generatePrompt()" class="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition">🎲</button>
@@ -174,13 +194,24 @@
         <header class="flex items-center justify-between mb-4 p-4 rounded-xl glass border-slate-700 shrink-0">
             <div class="flex items-center gap-6">
                 <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Genre</span><div id="current-genre" class="text-lg font-black text-blue-400 italic">Narrative</div></div>
-                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Timer</span><div id="main-timer" class="text-2xl font-mono font-bold">40:00</div></div>
-                <div class="hidden md:block"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Paragraph Pacing</span><div id="pacing-bars" class="flex w-64 mt-1"></div></div>
+                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Timer</span><div id="main-timer" class="text-2xl font-mono font-bold">35:00</div></div>
+                <div id="pacing-bars-container" class="hidden md:block"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Paragraph Pacing</span><div id="pacing-bars" class="flex w-64 mt-1"></div></div>
             </div>
-            <div class="flex items-center gap-6">
-                <button onclick="toggleTheme()" class="theme-toggle-btn w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg">☀️</button>
-                <div id="adj-gauge" class="hidden text-center border-r border-slate-700 pr-6 pl-2"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Adjectives</span><div class="flex items-center gap-2"><span id="adj-percent" class="text-2xl font-bold">0%</span></div></div>
-                <div class="text-right"><span id="word-count-display" class="text-2xl font-bold">0</span><span class="text-slate-500 text-sm font-bold"> / <span id="target-display">500</span> words</span></div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleAudio()" id="audio-btn" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg hover:bg-slate-700 transition relative group">
+                    🔈
+                    <div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Focus Audio</div>
+                </button>
+                <button onclick="toggleFont()" id="font-btn" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-bold hover:bg-slate-700 transition relative group">
+                    Aa
+                    <div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Change Font</div>
+                </button>
+                <button onclick="toggleTheme()" class="theme-toggle-btn w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg hover:bg-slate-700 transition relative group">
+                    ☀️
+                    <div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Theme</div>
+                </button>
+                <div id="adj-gauge" class="hidden text-center border-l border-slate-700 pl-4 ml-2"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Adjectives</span><div class="flex items-center gap-2 justify-end"><span id="adj-percent" class="text-2xl font-bold">0%</span></div></div>
+                <div class="text-right border-l border-slate-700 pl-4 ml-2"><span id="word-count-display" class="text-2xl font-bold">0</span><span class="text-slate-500 text-sm font-bold"> / <span id="target-display">500</span> words</span></div>
             </div>
         </header>
 
@@ -191,8 +222,8 @@
                 </div>
                 <div id="editor-container" class="relative flex-1 overflow-y-auto p-8 pb-28 bg-slate-900/30" onscroll="syncScroll(this)">
                     <div class="relative grid grid-cols-1 grid-rows-1">
-                        <div id="analysis-overlay" class="writing-area col-start-1 row-start-1 w-full pointer-events-none hidden text-transparent z-10"></div>
-                        <div id="editor" contenteditable="true" class="writing-area col-start-1 row-start-1 w-full outline-none bg-transparent text-slate-200 z-20" oninput="updateWordCount()"></div>
+                        <div id="analysis-overlay" class="writing-area col-start-1 row-start-1 w-full pointer-events-none hidden text-transparent z-10 font-sans"></div>
+                        <div id="editor" contenteditable="true" class="writing-area col-start-1 row-start-1 w-full outline-none bg-transparent text-slate-200 z-20 font-sans" oninput="handleTyping()"></div>
                     </div>
                 </div>
                 <div id="pre-finish-controls" class="absolute bottom-6 right-8 z-30">
@@ -203,12 +234,20 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="w-2/5 flex flex-col gap-4 overflow-y-auto pr-2 pb-10">
+            <div id="sidebar" class="w-2/5 flex flex-col gap-4 overflow-y-auto pr-2 pb-10">
                 <div id="post-finish-controls" class="hidden flex flex-col gap-3 shrink-0 mb-2">
                     <button id="toggle-analysis-btn" onclick="toggleAnalysis()" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm uppercase tracking-wider hover:bg-indigo-500 transition shadow-[0_0_15px_rgba(79,70,229,0.4)] border border-indigo-400">HIDE ANALYSIS</button>
-                    <button id="copy-text-btn" onclick="copyText()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        <span>COPY TEXT</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="read-aloud-btn" onclick="toggleSpeech()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                            🔊 <span>READ ALOUD</span>
+                        </button>
+                        <button id="copy-text-btn" onclick="copyText()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>COPY TEXT</span>
+                        </button>
+                    </div>
+                    <button id="export-pdf-btn" onclick="exportPDF()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                        📄 EXPORT PDF
                     </button>
                 </div>
                 
@@ -271,17 +310,17 @@
         </div>
     </div>
 
-    <!-- SURGICAL REPLACEMENT OF LEGEND (EXACT CODE PROVIDED BY USER) -->
+    <!-- SURGICAL REPLACEMENT OF LEGEND -->
     <div id="legend" class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 px-4 md:px-6 py-3 rounded-full glass border-slate-600 flex flex-nowrap items-center justify-center gap-2.5 md:gap-4 text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden shadow-2xl z-[100] w-max max-w-[98vw] overflow-hidden whitespace-nowrap">
 
       <!-- BAD START -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('blu', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500 shrink-0"></span> Bad Start
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-blue-400 block mb-2 text-sm uppercase tracking-wider">Bad Starts</strong>
+          <strong class="text-blue-400 block mb-2 text-sm uppercase tracking-wider">Bad Starts <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="mb-2 text-xs text-slate-300 leading-relaxed">
             Starting with pronouns (<em>He, She, It, They</em>), <strong>Character Names</strong>, or <em>The...</em> too often makes your writing feel basic and repetitive.
           </p>
@@ -326,13 +365,13 @@
       </div>
 
       <!-- NAME -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('pnk', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-pink-400 shrink-0"></span> Name
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-pink-400 block mb-1 text-sm uppercase tracking-wider">Character Name</strong>
+          <strong class="text-pink-400 block mb-1 text-sm uppercase tracking-wider">Character Name <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed">
             Overusing names makes your writing sound flat. Swap some names for sharp descriptive labels.
           </p>
@@ -376,13 +415,13 @@
       </div>
 
       <!-- BASIC WORD -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('grn', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 shrink-0"></span> Basic Word
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-green-400 block mb-2 text-sm uppercase tracking-wider">Basic Vocabulary</strong>
+          <strong class="text-green-400 block mb-2 text-sm uppercase tracking-wider">Basic Vocabulary <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-3">
             Common words don’t push marks up. Pick a stronger verb that matches the mood.
           </p>
@@ -440,13 +479,13 @@
       </div>
 
       <!-- PASSIVE -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('red', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 shrink-0"></span> Passive
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-red-400 block mb-1 text-sm uppercase tracking-wider">Passive Voice</strong>
+          <strong class="text-red-400 block mb-1 text-sm uppercase tracking-wider">Passive Voice <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Too many <em>was / were</em> sentences sound weak. Make the character do the action.
           </p>
@@ -480,13 +519,13 @@
       </div>
 
       <!-- FILTER -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('pur', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-500 shrink-0"></span> Filter
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-purple-400 block mb-2 text-sm uppercase tracking-wider">Filter Words</strong>
+          <strong class="text-purple-400 block mb-2 text-sm uppercase tracking-wider">Filter Words <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Words like <em>saw, heard, watched, knew, noticed, realised, decided, felt, could tell, could see/hear</em> push the reader away from the moment.
           </p>
@@ -520,13 +559,13 @@
       </div>
 
       <!-- ADVERB -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('yel', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400 shrink-0"></span> Adverb
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-yellow-400 block mb-2 text-sm uppercase tracking-wider">Adverbs (-ly)</strong>
+          <strong class="text-yellow-400 block mb-2 text-sm uppercase tracking-wider">Adverbs (-ly) <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Adverbs often tell instead of show. Replace the -ly word with a stronger action.
           </p>
@@ -560,13 +599,13 @@
       </div>
 
       <!-- REPETITION -->
-      <div class="outline-none cursor-pointer shrink-0" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+      <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('ora', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
           <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-orange-500 shrink-0"></span> REPETITION
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-orange-400 block mb-1 text-sm uppercase tracking-wider">Repetition</strong>
+          <strong class="text-orange-400 block mb-1 text-sm uppercase tracking-wider">Repetition <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Repeating the same strong word too close together sounds clunky. Swap it, combine, or re-shape the sentence.
           </p>
@@ -609,7 +648,7 @@
     </div>
 
     <script>
-        // --- DATA DEFINITIONS ---
+        // --- DATA DEFINITIONS (PRESERVED) ---
         const promptsData = {
             narrative: ["The Secret Door", "A Huge Mistake", "The Best Invention", "The Golden Key", "Lost", "The Discovery", "The Abandoned House", "The Time Machine", "The Storm", "The Truth", "One Lie", "Under Fire", "Courage", "Too Kind", "Survivor", "Under Pressure", "It Just Happened!", "Get Out!", "Who Knew?", "The Cave"],
             persuasive: ["Should school be 4 days a week?", "Mobile Phones: Yes or No?", "Is homework necessary?", "Are video games good for you?", "Should school uniforms be compulsory?", "Do we need zoos?", "Should students choose all their own subjects?", "Should junk food be allowed at school?", "Should phones have an age limit?", "Should school start later in the morning?", "Should students be paid for good grades?", "Should AI be allowed for school work?", "Should sport be compulsory at school?", "Should students have a longer lunch break?", "Should schools ban energy drinks?", "Should schools teach financial skills?"]
@@ -640,128 +679,128 @@
 
         const startersData = {
             narrative: {
-  "Hooks & Openings": [
-    "Without warning",
-    "Out of nowhere",
-    "All of a sudden",
-    "To everyone's surprise",
-    "Just when it seemed",
-    "Against all odds",
-    "Deep in the heart of",
-    "For the first time",
-    "Before anyone realized",
-    "Hidden away"
-  ],
-  "Where (Setting)": [
-    "Above the",
-    "Behind the",
-    "Beyond the edge of",
-    "Hidden beneath",
-    "Far across the",
-    "Right in the middle of",
-    "Looming over the",
-    "Tucked away in",
-    "Stretching across",
-    "Surrounding the"
-  ],
-  "When (Time)": [
-    "During the night",
-    "Early the next morning",
-    "As the sun set",
-    "Moments later",
-    "Shortly after",
-    "Hours before dawn",
-    "In the dead of night",
-    "Throughout the day",
-    "By the time the",
-    "Long after the"
-  ],
-  "Action Verbs": [
-    "Creeping silently",
-    "Sprinting toward",
-    "Gasping for air",
-    "Trembling slightly",
-    "Peering through",
-    "Staring intensely",
-    "Searching frantically",
-    "Listening closely",
-    "Tumbling down",
-    "Clambering over"
-  ]
-},
-persuasive: {
-  "Hooks & Openings": [
-    "Have you ever noticed how",
-    "Let's kick things off by considering",
-    "It's universally acknowledged that",
-    "Have you ever stopped to consider",
-    "What's truly fascinating is",
-    "It's no secret that",
-    "History shows us that",
-    "Many of us assume that",
-    "At first glance",
-    "Picture this scenario:",
-    "It is a simple truth that",
-    "Many people believe that",
-    "Imagine a world where",
-    "It is outrageous that",
-    "Without a doubt",
-    "Have you ever considered",
-    "The reality is",
-    "Are we really prepared to"
-  ],
-  "Evidence & Reflection": [
-    "Digging deeper, we find",
-    "Case in point:",
-    "To illustrate this point",
-    "For instance, consider",
-    "A perfect example of this is",
-    "According to [source], it's evident that",
-    "Even Science supports the idea that",
-    "Research suggests",
-    "On a more personal note,",
-    "This resonates with me because",
-    "A clear example of this is",
-    "Studies have shown that",
-    "Furthermore,",
-    "Not only that, but",
-    "This proves that"
-  ],
-  "Counter-Arguments": [
-    "But here's where it gets interesting",
-    "You're probably wondering",
-    "So what's the real story/problem here?",
-    "But let's take a step back for a moment",
-    "Now, bear with me for a second",
-    "Here's a thought",
-    "But guess what?",
-    "You see where I'm going with this?",
-    "I beg you, let's not overlook the fact that",
-    "And the real kicker is",
-    "While some argue that",
-    "On the flip side",
-    "Some might say that",
-    "Although it is true that",
-    "However, they fail to consider",
-    "Even though opponents claim",
-    "On the contrary,",
-    "Despite these claims,",
-    "Others may believe",
-    "While this may seem true"
-  ],
-  "Call to Action": [
-    "In conclusion, it is clear",
-    "Ultimately, the choice is ours",
-    "Can we really afford to",
-    "It is time to take action",
-    "We must demand",
-    "Therefore, I strongly believe",
-    "The evidence speaks for itself",
-    "If we don't act now",
-    "It is crucial that",
-    "We cannot ignore"
-  ]
-}
+              "Hooks & Openings": [
+                "Without warning",
+                "Out of nowhere",
+                "All of a sudden",
+                "To everyone's surprise",
+                "Just when it seemed",
+                "Against all odds",
+                "Deep in the heart of",
+                "For the first time",
+                "Before anyone realized",
+                "Hidden away"
+              ],
+              "Where (Setting)": [
+                "Above the",
+                "Behind the",
+                "Beyond the edge of",
+                "Hidden beneath",
+                "Far across the",
+                "Right in the middle of",
+                "Looming over the",
+                "Tucked away in",
+                "Stretching across",
+                "Surrounding the"
+              ],
+              "When (Time)": [
+                "During the night",
+                "Early the next morning",
+                "As the sun set",
+                "Moments later",
+                "Shortly after",
+                "Hours before dawn",
+                "In the dead of night",
+                "Throughout the day",
+                "By the time the",
+                "Long after the"
+              ],
+              "Action Verbs": [
+                "Creeping silently",
+                "Sprinting toward",
+                "Gasping for air",
+                "Trembling slightly",
+                "Peering through",
+                "Staring intensely",
+                "Searching frantically",
+                "Listening closely",
+                "Tumbling down",
+                "Clambering over"
+              ]
+            },
+            persuasive: {
+              "Hooks & Openings": [
+                "Have you ever noticed how",
+                "Let's kick things off by considering",
+                "It's universally acknowledged that",
+                "Have you ever stopped to consider",
+                "What's truly fascinating is",
+                "It's no secret that",
+                "History shows us that",
+                "Many of us assume that",
+                "At first glance",
+                "Picture this scenario:",
+                "It is a simple truth that",
+                "Many people believe that",
+                "Imagine a world where",
+                "It is outrageous that",
+                "Without a doubt",
+                "Have you ever considered",
+                "The reality is",
+                "Are we really prepared to"
+              ],
+              "Evidence & Reflection": [
+                "Digging deeper, we find",
+                "Case in point:",
+                "To illustrate this point",
+                "For instance, consider",
+                "A perfect example of this is",
+                "According to [source], it's evident that",
+                "Even Science supports the idea that",
+                "Research suggests",
+                "On a more personal note,",
+                "This resonates with me because",
+                "A clear example of this is",
+                "Studies have shown that",
+                "Furthermore,",
+                "Not only that, but",
+                "This proves that"
+              ],
+              "Counter-Arguments": [
+                "But here's where it gets interesting",
+                "You're probably wondering",
+                "So what's the real story/problem here?",
+                "But let's take a step back for a moment",
+                "Now, bear with me for a second",
+                "Here's a thought",
+                "But guess what?",
+                "You see where I'm going with this?",
+                "I beg you, let's not overlook the fact that",
+                "And the real kicker is",
+                "While some argue that",
+                "On the flip side",
+                "Some might say that",
+                "Although it is true that",
+                "However, they fail to consider",
+                "Even though opponents claim",
+                "On the contrary,",
+                "Despite these claims,",
+                "Others may believe",
+                "While this may seem true"
+              ],
+              "Call to Action": [
+                "In conclusion, it is clear",
+                "Ultimately, the choice is ours",
+                "Can we really afford to",
+                "It is time to take action",
+                "We must demand",
+                "Therefore, I strongly believe",
+                "The evidence speaks for itself",
+                "If we don't act now",
+                "It is crucial that",
+                "We cannot ignore"
+              ]
+            }
         };
 
         const adverbExclusions = new Set(['really', 'only', 'family', 'fly', 'ugly', 'early', 'silly', 'lonely', 'jelly', 'holy', 'exactly', 'supply', 'apply', 'rely', 'reply', 'multiply', 'daily', 'weekly', 'monthly', 'yearly', 'annually', 'currently', 'usually', 'friendly', 'lovely', 'lively', 'finally', 'actually', 'possibly', 'probably', 'certainly', 'definitely']);
@@ -769,6 +808,7 @@ persuasive: {
         // --- Core State ---
         let genre = 'narrative';
         let timeLeft = 0;
+        let timeElapsed = 0;
         let timerInterval = null;
         let isAnalysisActive = false;
         let isFinished = false;
@@ -777,13 +817,239 @@ persuasive: {
         let isLightMode = false;
         let nameIndices = { male: 0, female: 0, neutral: 0 };
         let genderCycle = 0; 
+        
+        // --- New V2 States ---
+        let isNoLimit = false;
+        let hasHitTarget = false;
+        let activeFilters = { blu: true, pnk: true, grn: true, red: true, pur: true, yel: true, ora: true };
+        let typingTimer;
+        let fontCycle = 0;
+        const fontClasses = ['font-sans', 'font-serif', 'font-lexend'];
+        let audioCtx, brownNoiseNode;
+        let isSpeaking = false;
 
-        // --- Logic Functions ---
+        // --- V2 Feature Logic ---
+
+        function handleInteraction() {
+            document.body.classList.remove('zen-focus');
+        }
+
+        // Expose handleInteraction globally
+        window.handleInteraction = handleInteraction;
+
+        function handleTyping() {
+            document.body.classList.add('zen-focus');
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                document.body.classList.remove('zen-focus');
+            }, 3000); // 3 seconds idle removes Zen Mode
+            updateWordCount();
+        }
+
+        function toggleFilter(type, element) {
+            activeFilters[type] = !activeFilters[type];
+            element.style.opacity = activeFilters[type] ? '1' : '0.4';
+            if (isAnalysisActive) runAnalysis();
+        }
+
+        function toggleFont() {
+            const ed = document.getElementById('editor');
+            const overlay = document.getElementById('analysis-overlay');
+            fontClasses.forEach(c => { ed.classList.remove(c); overlay.classList.remove(c); document.body.classList.remove(c); });
+            fontCycle = (fontCycle + 1) % fontClasses.length;
+            ed.classList.add(fontClasses[fontCycle]);
+            overlay.classList.add(fontClasses[fontCycle]);
+            document.body.classList.add(fontClasses[fontCycle]);
+            document.getElementById('font-btn').innerHTML = fontClasses[fontCycle] === 'font-sans' ? 'Aa<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Change Font</div>' : fontClasses[fontCycle] === 'font-serif' ? 'A̲a<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Change Font</div>' : 'A𝒂<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Change Font</div>';
+        }
+
+        function toggleAudio() {
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let bufferSize = 2 * audioCtx.sampleRate,
+                noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+                output = noiseBuffer.getChannelData(0);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02; // brown noise formula
+                    lastOut = output[i];
+                    output[i] *= 3.5; 
+                }
+                brownNoiseNode = audioCtx.createBufferSource();
+                brownNoiseNode.buffer = noiseBuffer;
+                brownNoiseNode.loop = true;
+                let gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0.08; // Gentle, non-intrusive volume
+                brownNoiseNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                brownNoiseNode.start(0);
+                document.getElementById('audio-btn').innerHTML = '🔊<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Focus Audio</div>';
+            } else if (audioCtx.state === 'running') {
+                audioCtx.suspend();
+                document.getElementById('audio-btn').innerHTML = '🔈<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Focus Audio</div>';
+            } else if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+                document.getElementById('audio-btn').innerHTML = '🔊<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Focus Audio</div>';
+            }
+        }
+
+        function toggleSpeech() {
+            if(isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                document.querySelector('#read-aloud-btn span').innerText = "READ ALOUD";
+            } else {
+                let text = document.getElementById('editor').innerText;
+                if (!text.trim()) return;
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.onend = () => { isSpeaking = false; document.querySelector('#read-aloud-btn span').innerText = "READ ALOUD"; };
+                window.speechSynthesis.speak(utterance);
+                isSpeaking = true;
+                document.querySelector('#read-aloud-btn span').innerText = "STOP READING";
+            }
+        }
+
+        function exportPDF() {
+            // Guarantee fresh analysis and metrics before export
+            runAnalysis();
+            generateAdvancedMetrics();
+
+            const element = document.createElement('div');
+            let title = document.getElementById('prompt-display').innerText;
+            let textHtml = document.getElementById('analysis-overlay').innerHTML || document.getElementById('editor').innerText;
+            let wordCount = document.getElementById('word-count-display').innerText;
+            
+            // Clean metrics HTML for printing
+            let metricsHtml = document.getElementById('metrics-container').innerHTML;
+            metricsHtml = metricsHtml.replace(/text-slate-500/g, 'color: #475569; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-slate-300/g, 'color: #334155;');
+            metricsHtml = metricsHtml.replace(/text-indigo-400/g, 'color: #4f46e5; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-green-400/g, 'color: #16a34a; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-red-400/g, 'color: #dc2626; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-orange-400/g, 'color: #ea580c; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-blue-400/g, 'color: #2563eb; font-weight: bold;');
+            
+            // Convert dark mode backgrounds to light mode borders for PDF
+            metricsHtml = metricsHtml.replace(/bg-slate-900\/50/g, 'background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 8px;');
+            metricsHtml = metricsHtml.replace(/border-slate-700/g, '');
+            metricsHtml = metricsHtml.replace(/border-slate-800/g, 'border-color: #cbd5e1;');
+
+            // Gather nominated literary devices
+            let devicesHtml = '';
+            if (genre === 'narrative') {
+                const checkedBoxes = document.querySelectorAll('#devices-list input[type="checkbox"]:checked');
+                const checkedDevices = Array.from(checkedBoxes).map(cb => cb.nextElementSibling.innerText);
+                if (checkedDevices.length > 0) {
+                    devicesHtml = `
+                        <div style="margin-top: 12px; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px;">
+                            <div style="color: #ea580c; font-weight: bold; text-transform: uppercase; font-size: 10px; margin-bottom: 6px; letter-spacing: 1px;">Literary Devices Included</div>
+                            <div style="color: #9a3412; font-size: 12px; font-weight: 600;">${checkedDevices.join(' • ')}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            element.innerHTML = `
+                <style>
+                    /* Removed max-width, margins, and paddings so jsPDF handles A4 sizing natively */
+                    .pdf-container { font-family: 'Inter', sans-serif; color: #0f172a; background: #fff; width: 100%; box-sizing: border-box; }
+                    .pdf-title { color: #4f46e5; text-align: center; margin-bottom: 5px; font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+                    .pdf-prompt { color: #64748b; text-align: center; font-style: italic; margin-top: 0; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+                    .pdf-wordcount { color: #475569; text-align: center; font-size: 12px; font-weight: 500; margin-top: 0; }
+                    .pdf-divider { margin: 20px 0; border: 0; border-top: 2px solid #e2e8f0; }
+                    
+                    /* Text Area */
+                    .pdf-text { white-space: pre-wrap; line-height: 1.6; font-size: 13px; text-align: justify; margin-bottom: 20px; }
+                    
+                    /* Readability Colors for Light Background PDF */
+                    .pdf-text .c-blu { color: #2563eb; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; font-weight: 700; } 
+                    .pdf-text .c-grn { color: #16a34a; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; font-weight: 700; } 
+                    .pdf-text .c-red { color: #dc2626; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 3px; font-weight: 700; } 
+                    .pdf-text .c-pur { color: #7e22ce; background: rgba(126, 34, 206, 0.1); font-weight: 700; padding: 0 2px; border-radius: 2px; } 
+                    .pdf-text .c-ora { color: #c2410c; background: rgba(194, 65, 12, 0.1); outline: 1px dashed #c2410c; font-weight: 700; padding: 0 2px; border-radius: 2px; } 
+                    .pdf-text .c-pnk { color: #be185d; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; font-weight: 700; } 
+                    .pdf-text .c-yel { color: #a16207; text-decoration: underline; text-decoration-style: double; text-underline-offset: 3px; font-weight: 700; }
+                    
+                    /* Metrics Section */
+                    .pdf-metrics-title { color: #4f46e5; font-size: 14px; margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+                    .pdf-metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; }
+                </style>
+                <div class="pdf-container">
+                    <h1 class="pdf-title">NAPLAN Writing Report</h1>
+                    <h3 class="pdf-prompt">${title}</h3>
+                    <p class="pdf-wordcount">Word Count: <strong>${wordCount}</strong></p>
+                    <hr class="pdf-divider" />
+                    <div class="pdf-text">${textHtml}</div>
+                    <hr class="pdf-divider" />
+                    <h2 class="pdf-metrics-title">Style & Flow Metrics</h2>
+                    <div class="pdf-metrics-grid">
+                        ${metricsHtml}
+                    </div>
+                    ${devicesHtml}
+                </div>
+            `;
+            
+            const opt = {
+                margin:       0.5, // Standard 0.5-inch margin all around
+                filename:     'NAPLAN_Writing_Report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true }, // Removed windowWidth 800 to avoid conflicts
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Add to DOM temporarily to apply standard tailwind grid classes on the clone
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            // Force rendering width to match standard A4 pixel width (at 96dpi) for proper grid flow
+            tempContainer.style.width = '794px'; 
+            tempContainer.appendChild(element);
+            document.body.appendChild(tempContainer);
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempContainer);
+            });
+        }
+
+        // --- Core Logic Functions ---
 
         function toggleTheme() {
             isLightMode = !isLightMode;
-            document.body.className = isLightMode ? 'light min-h-screen flex flex-col' : 'dark min-h-screen flex flex-col';
-            document.querySelectorAll('.theme-toggle-btn').forEach(btn => btn.innerText = isLightMode ? '🌙' : '☀️');
+            document.body.classList.toggle('light');
+            document.body.classList.toggle('dark');
+            document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+                if (btn.id !== 'font-btn' && btn.id !== 'audio-btn') {
+                    btn.innerHTML = isLightMode ? '🌙<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Theme</div>' : '☀️<div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Theme</div>';
+                }
+            });
+        }
+
+        function updateTimeSliderValue(val) {
+            if (isNoLimit) toggleNoLimit();
+            document.getElementById('time-val').innerText = val + ' mins';
+        }
+
+        function toggleNoLimit() {
+            isNoLimit = !isNoLimit;
+            const btn = document.getElementById('no-limit-btn');
+            const slider = document.getElementById('time-slider');
+            const valDisplay = document.getElementById('time-val');
+            
+            if (isNoLimit) {
+                btn.classList.add('bg-blue-600', 'text-white', 'border-blue-500');
+                btn.classList.remove('bg-slate-800', 'text-slate-400', 'hover:bg-slate-700');
+                slider.style.opacity = '0.5';
+                slider.disabled = true;
+                valDisplay.innerText = '∞';
+            } else {
+                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-500');
+                btn.classList.add('bg-slate-800', 'text-slate-400', 'hover:bg-slate-700');
+                slider.style.opacity = '1';
+                slider.disabled = false;
+                valDisplay.innerText = slider.value + ' mins';
+            }
         }
 
         function setGenre(g) {
@@ -791,14 +1057,18 @@ persuasive: {
             document.getElementById('char-name-group').style.display = g === 'narrative' ? 'block' : 'none';
             document.getElementById('current-genre').innerText = g.charAt(0).toUpperCase() + g.slice(1);
             paragraphCount = g === 'narrative' ? 6 : 4;
-            totalTimeSecs = g === 'narrative' ? (36 * 60) : (35 * 60);
             
             const nBtn = document.getElementById('setup-btn-narrative');
             const pBtn = document.getElementById('setup-btn-persuasive');
             nBtn.className = g === 'narrative' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
             pBtn.className = g === 'persuasive' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
             
-            generatePrompt();
+            // Only generate a prompt if one hasn't been set yet or if switching genres
+            if (!document.getElementById('prompt-input').value || 
+                promptsData['narrative'].includes(document.getElementById('prompt-input').value) ||
+                promptsData['persuasive'].includes(document.getElementById('prompt-input').value)) {
+                generatePrompt();
+            }
         }
 
         function generatePrompt() {
@@ -867,20 +1137,40 @@ persuasive: {
         }
 
         function initApp() {
+            totalTimeSecs = isNoLimit ? 0 : parseInt(document.getElementById('time-slider').value) * 60;
             timeLeft = totalTimeSecs;
+            timeElapsed = 0;
             isFinished = false;
+            hasHitTarget = false;
+            
             document.getElementById('pre-finish-controls').classList.remove('hidden');
             document.getElementById('post-finish-controls').classList.add('hidden');
-            renderPacingBars();
+            
+            if (isNoLimit) {
+                document.getElementById('pacing-bars-container').classList.add('hidden');
+                document.getElementById('main-timer').innerText = "0:00";
+            } else {
+                document.getElementById('pacing-bars-container').classList.remove('hidden');
+                renderPacingBars();
+            }
+            
             renderSidebar();
             document.getElementById('adj-gauge').style.display = genre === 'narrative' ? 'block' : 'none';
+            
             timerInterval = setInterval(() => {
-                timeLeft--;
-                const m = Math.floor(timeLeft / 60);
-                const s = timeLeft % 60;
-                document.getElementById('main-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                updatePacingBars();
-                if (timeLeft <= 0) { clearInterval(timerInterval); finishWriting(); }
+                timeElapsed++;
+                if (isNoLimit) {
+                    const m = Math.floor(timeElapsed / 60);
+                    const s = timeElapsed % 60;
+                    document.getElementById('main-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                } else {
+                    timeLeft--;
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    document.getElementById('main-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                    updatePacingBars();
+                    if (timeLeft <= 0) { clearInterval(timerInterval); finishWriting(); }
+                }
             }, 1000);
             const ed = document.getElementById('editor');
             ed.innerHTML = ""; ed.focus();
@@ -895,7 +1185,8 @@ persuasive: {
         }
 
         function updatePacingBars() {
-            const elapsed = totalTimeSecs - timeLeft;
+            if (isNoLimit) return;
+            const elapsed = timeElapsed;
             const timePerPara = totalTimeSecs / paragraphCount;
             const activePara = Math.floor(elapsed / timePerPara);
             for (let i = 0; i < activePara; i++) {
@@ -940,16 +1231,21 @@ persuasive: {
             const text = document.getElementById('editor').innerText.trim();
             const words = text ? text.split(/\s+/).length : 0;
             document.getElementById('word-count-display').innerText = words;
+
+            // Target Hit Confetti
+            const targetWordCount = parseInt(document.getElementById('target-slider').value);
+            if (words >= targetWordCount && !hasHitTarget && targetWordCount > 0) {
+                hasHitTarget = true;
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }
             
             if (genre === 'narrative') {
                 const tokens = text.toLowerCase().match(/\b(\w+)\b/g) || [];
                 let count = 0;
                 
-                // Use Compromise NLP library for accurate contextual grammar parsing
                 if (typeof nlp !== 'undefined' && text) {
                     count = nlp(text).match('#Adjective').out('array').length;
                 } else {
-                    // Fallback to basic suffix checking if the library hasn't loaded yet
                     count = tokens.filter(t => (t.length > 4 && ['ful', 'less', 'ous', 'ive', 'ic', 'al', 'able', 'ible', 'ish', 'y'].some(s => t.endsWith(s)))).length;
                 }
                 
@@ -965,7 +1261,7 @@ persuasive: {
         function finishWriting() {
             isFinished = true; clearInterval(timerInterval);
             document.getElementById('final-words').innerText = document.getElementById('word-count-display').innerText;
-            const timeTaken = totalTimeSecs - timeLeft;
+            const timeTaken = timeElapsed; // Now unified for both modes
             document.getElementById('final-time').innerText = `${Math.floor(timeTaken/60)}:${(timeTaken%60)<10?'0':''}${timeTaken%60}`;
             document.getElementById('finished-screen').classList.remove('hidden');
             document.getElementById('pre-finish-controls').classList.add('hidden');
@@ -1088,14 +1384,17 @@ persuasive: {
                 else if (t.type === 'word') {
                     let cls = ""; let low = t.low;
                     let isP = (low.endsWith('ed')||low.endsWith('en')||['hit','hurt','cut','put','set'].includes(low)) && (['was','were','is','are','be','been','being','get','got','getting','gotten'].includes(prev) || (prev==='been' && ['has','have','had'].includes(pPrev)));
-                    if (sentStart && (blueStarts.has(low) || (charName && low === charName))) cls = "c-blu";
-                    else if (isP) cls = "c-red";
-                    else if (charName && low === charName) cls = "c-pnk";
-                    else if (repeats.has(t.globalIdx)) cls = "c-ora";
-                    else if (filterWords.has(low)) cls = "c-pur";
-                    else if (low.endsWith('ly') && low.length > 3 && !adverbExclusions.has(low)) cls = "c-yel";
-                    else if (basics.has(low)) cls = "c-grn";
-                    else if (['was','were','is','are','be','been','being','has','had','have','get','got'].includes(low)) cls = "c-red";
+                    
+                    // Filter Logic applied during render
+                    if (sentStart && (blueStarts.has(low) || (charName && low === charName)) && activeFilters.blu) cls = "c-blu";
+                    else if (isP && activeFilters.red) cls = "c-red";
+                    else if (charName && low === charName && activeFilters.pnk) cls = "c-pnk";
+                    else if (repeats.has(t.globalIdx) && activeFilters.ora) cls = "c-ora";
+                    else if (filterWords.has(low) && activeFilters.pur) cls = "c-pur";
+                    else if (low.endsWith('ly') && low.length > 3 && !adverbExclusions.has(low) && activeFilters.yel) cls = "c-yel";
+                    else if (basics.has(low) && activeFilters.grn) cls = "c-grn";
+                    else if (['was','were','is','are','be','been','being','has','had','have','get','got'].includes(low) && activeFilters.red) cls = "c-red";
+                    
                     res += cls ? `<span class="${cls}">${t.text}</span>` : t.text;
                     sentStart = false; pPrev = prev; prev = low;
                 }
