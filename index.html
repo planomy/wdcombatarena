@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPLAN Writing Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .dark {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .writing-area {
+            min-height: 500px;
+            font-size: 1.125rem;
+            line-height: 1.8;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        /* Analysis Styles - Safe CSS that DOES NOT alter layout width/height */
+        .c-blu { color: #60a5fa !important; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; } 
+        .c-grn { color: #4ade80 !important; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 4px; } 
+        .c-red { color: #f87171 !important; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 4px; } 
+        .c-pur { color: #c084fc !important; background: rgba(192, 132, 252, 0.2); } 
+        .c-ora { color: #fb923c !important; background: rgba(251, 146, 60, 0.2); outline: 1px dashed #fb923c; } 
+
+        .pacing-segment {
+            height: 8px;
+            border-radius: 4px;
+            background: #334155;
+            flex-grow: 1;
+            margin: 0 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pacing-fill {
+            height: 100%;
+            width: 0%;
+            background: #22c55e;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .pacing-fill.warning { background: #eab308; }
+        .pacing-fill.danger { background: #ef4444; }
+
+        @keyframes pulse-red {
+            0%, 100% { color: #f1f5f9; }
+            50% { color: #ef4444; }
+        }
+        .timer-danger { animation: pulse-red 1s infinite; }
+
+        .starter-btn {
+            text-align: left;
+            padding: 6px 10px;
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .starter-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #8b5cf6;
+        }
+
+        input[type=range] { accent-color: #3b82f6; }
+        
+        #editor-container::-webkit-scrollbar { width: 8px; }
+        #editor-container::-webkit-scrollbar-track { background: transparent; }
+        #editor-container::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+    </style>
+</head>
+<body class="dark min-h-screen flex flex-col">
+
+    <!-- Pre-start Screen -->
+    <div id="setup-screen" class="fixed inset-0 z-50 flex items-center justify-center p-6 glass">
+        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-2xl border border-slate-700">
+            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400 italic tracking-tighter">NAPLAN Writing Lab</h1>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest">Select Genre</label>
+                    <div class="flex gap-2">
+                        <button onclick="setGenre('narrative')" id="setup-btn-narrative" class="flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 font-bold transition">Narrative</button>
+                        <button onclick="setGenre('persuasive')" id="setup-btn-persuasive" class="flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition">Persuasive</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest">Word Count Goal: <span id="goal-val" class="text-blue-400 font-bold">500</span></label>
+                    <input id="target-slider" type="range" min="100" max="600" step="50" value="500" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" oninput="document.getElementById('goal-val').innerText = this.value">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest">Prompt</label>
+                    <div class="flex gap-2 mb-2">
+                        <input id="prompt-input" type="text" placeholder="Enter a prompt..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                        <button onclick="generatePrompt()" class="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition">🎲</button>
+                    </div>
+                </div>
+
+                <button onclick="startCountdown()" class="w-full py-4 mt-4 rounded-xl bg-green-600 text-white font-black text-xl hover:bg-green-500 shadow-lg transition transform hover:scale-105 uppercase tracking-wider">
+                    Go!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 321 Countdown Overlay -->
+    <div id="countdown-overlay" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 hidden">
+        <div id="countdown-number" class="text-5xl md:text-7xl lg:text-[9rem] font-black text-white italic text-center px-4 uppercase tracking-tight"></div>
+    </div>
+
+    <!-- Finished Modal Overlay -->
+    <div id="finished-screen" class="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm hidden">
+        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-2xl border border-slate-700 text-center">
+            <h2 class="text-4xl font-black mb-2 text-green-400 uppercase tracking-tighter">Done!</h2>
+            <p class="text-slate-400 mb-6">Fantastic work completing your practice.</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="p-4 bg-slate-800 rounded-xl border border-slate-700">
+                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Words Written</div>
+                    <div id="final-words" class="text-3xl font-black text-white">0</div>
+                </div>
+                <div class="p-4 bg-slate-800 rounded-xl border border-slate-700">
+                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Time Taken</div>
+                    <div id="final-time" class="text-3xl font-black text-white">0:00</div>
+                </div>
+            </div>
+
+            <button onclick="reviewWork()" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-500 shadow-lg transition">
+                Review & Analyze
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="max-w-[1600px] mx-auto p-4 flex flex-col h-screen w-full">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-4 p-4 rounded-xl glass border-slate-700 shrink-0">
+            <div class="flex items-center gap-6">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Genre</span>
+                    <div id="current-genre" class="text-lg font-black text-blue-400 italic">Narrative</div>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Timer</span>
+                    <div id="main-timer" class="text-2xl font-mono font-bold">40:00</div>
+                </div>
+                <div class="hidden md:block">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Paragraph Pacing</span>
+                    <div id="pacing-bars" class="flex w-64 mt-1"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div id="adj-gauge" class="hidden text-center border-r border-slate-700 pr-6">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Adjectives</span>
+                    <div class="flex items-center gap-2">
+                        <span id="adj-percent" class="text-2xl font-bold">0%</span>
+                        <div class="text-[9px] text-slate-400 font-bold">Target: 12%</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span id="word-count-display" class="text-2xl font-bold">0</span>
+                    <span class="text-slate-500 text-sm font-bold">/ <span id="target-display">500</span> words</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <div class="flex flex-1 gap-4 min-h-0">
+            <!-- Writing Area (60%) -->
+            <div class="w-3/5 flex flex-col glass rounded-2xl relative overflow-hidden">
+                <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center shrink-0">
+                    <div id="prompt-display" class="font-bold italic text-slate-300">"The Secret Door"</div>
+                    <div class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Single Entry Box</div>
+                </div>
+                
+                <!-- Grid Container ensures Editor and Overlay share the exact same box model -->
+                <div id="editor-container" class="relative flex-1 overflow-y-auto p-8 pb-28 bg-slate-900/30" onscroll="syncScroll()">
+                    <div class="relative grid grid-cols-1 grid-rows-1">
+                        <!-- Layer 1: The Overlay (Highlights) -->
+                        <div id="analysis-overlay" class="writing-area col-start-1 row-start-1 w-full pointer-events-none hidden text-transparent z-10"></div>
+                        <!-- Layer 2: The Editor (User text) -->
+                        <div id="editor" contenteditable="true" class="writing-area col-start-1 row-start-1 w-full outline-none bg-transparent text-slate-200 z-20 transition-opacity duration-300" oninput="updateWordCount()"></div>
+                    </div>
+                </div>
+                
+                <!-- Floating Action Button -->
+                <div class="absolute bottom-6 right-8 z-30">
+                    <button id="floating-action-btn" onclick="handleFloatingAction()" class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.4)] border border-indigo-400 transition transform hover:scale-105 uppercase tracking-wider text-sm">
+                        FINISH & ANALYSE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar (40%) -->
+            <div class="w-2/5 flex flex-col gap-4 overflow-y-auto pr-2 pb-10">
+                <div class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl shrink-0">
+                    <h3 class="font-bold text-sm mb-3 text-blue-400 uppercase tracking-widest">Structure Guide</h3>
+                    <div id="structure-list" class="space-y-4 text-xs leading-relaxed"></div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl flex-1 shrink-0">
+                    <h3 class="font-bold text-sm mb-3 text-purple-400 uppercase tracking-widest">Sentence Starters</h3>
+                    <div id="starters-list" class="space-y-4"></div>
+                </div>
+
+                <div id="narrative-checklist" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl shrink-0">
+                    <h3 class="font-bold text-[10px] mb-3 text-orange-400 uppercase tracking-widest">Literary Device Check</h3>
+                    <div class="grid grid-cols-1 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500"> Metaphor</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500"> Simile</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500"> Personification</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500"> Onomatopoeia</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500"> Alliteration</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full glass border-slate-600 flex gap-8 text-[10px] font-black uppercase tracking-widest hidden shadow-2xl z-[100]">
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Bad Start</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500"></span> Basic Word</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span> Passive</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500"></span> Filter</div>
+        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500"></span> Repetition</div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const overlay = document.getElementById('analysis-overlay');
+        const mainTimerEl = document.getElementById('main-timer');
+        const pacingBarsEl = document.getElementById('pacing-bars');
+        const editorContainer = document.getElementById('editor-container');
+        
+        let genre = 'narrative';
+        let timeLeft = 0;
+        let timerInterval = null;
+        let isAnalysisActive = false;
+        let isFinished = false;
+        let totalTimeSecs = 0;
+        let paragraphCount = 6;
+
+        const promptsData = {
+            narrative: [
+                "The Secret Door", "A Huge Mistake", "The Best Invention", "The Last Tree", "The Golden Key",
+                "Lost in the Woods", "The Unexpected Visitor", "The Discovery", "The Abandoned House", "The Time Machine",
+                "A Strange Encounter", "The Hidden Message", "The Escape", "The Storm", "The Midnight Thief",
+                "The Mirror", "The Last Train", "The Secret Power", "The Forbidden Room", "The Cave"
+            ],
+            persuasive: [
+                "Should school be 4 days a week?", "Mobile Phones: Yes or No?", "Is homework necessary?",
+                "Should junk food be banned in schools?", "Are video games good for you?", "Should school uniforms be compulsory?",
+                "Do we need zoos?", "Should plastic bags be completely banned?", "Is social media harmful?",
+                "Should kids have a strict bedtime?", "Should animals be used in sports?", "Is reading better than watching TV?",
+                "Should tests be abolished?", "Do kids need more outdoor play?", "Should cooking be a mandatory subject?",
+                "Is it important to learn a second language?", "Should space exploration be funded?", "Are books better than movies?",
+                "Should schools teach financial literacy?", "Is handwriting still important?"
+            ]
+        };
+
+        const adjSuffixes = ['ful', 'less', 'ous', 'ive', 'ic', 'al', 'able', 'ible', 'ish', 'y'];
+        const commonAdjectives = new Set(['beautiful', 'scary', 'dark', 'bright', 'massive', 'tiny', 'frightening', 'silent', 'ancient', 'mysterious', 'golden', 'cold', 'hot', 'soft', 'hard', 'rough', 'smooth', 'bitter', 'sweet', 'loud', 'quiet', 'stunning', 'vibrant', 'gloomy', 'shadowy', 'glittering', 'jagged', 'sparkling', 'heavy', 'light', 'strong', 'weak', 'brave', 'fearful', 'shimmering']);
+
+        const structures = {
+            narrative: [
+                { title: "ORIENTATION (Who)", desc: "Char Action + 1-3 description + 1-3 story sentences.", placeholder: "Action ➔ Description ➔ Story\n[thinking, feeling, dialogue can also be used]" },
+                { title: "ORIENTATION (Where)", desc: "Char Action + sensory details + 1-3 story sentences.", placeholder: "Action ➔ Sensory Details ➔ Story\n[thinking, feeling, dialogue can also be used]" },
+                { title: "ORIENTATION (What)", desc: "Char Action + routine/goal + 1-3 story sentences.", placeholder: "Action ➔ Routine/Goal ➔ Story\n[thinking, feeling, dialogue can also be used]" },
+                { title: "RISING ACTION (Tension)", desc: "Action + atmosphere details + story progression.", placeholder: "Action ➔ Atmosphere ➔ Story\n[thinking, feeling, dialogue can also be used]" },
+                { title: "COMPLICATION", desc: "Action + intense atmosphere + the 'Turning Point'.", placeholder: "Action ➔ Intense Atmosphere ➔ Story\n[thinking, feeling, dialogue can also be used]" },
+                { title: "RESOLUTION", desc: "Action + resolution + how the world changed.", placeholder: "Action ➔ Resolution ➔ Story\n[thinking, feeling, dialogue can also be used]" }
+            ],
+            persuasive: [
+                { title: "INTRODUCTION", desc: "Hook + Exploration + Insight + Thesis.", placeholder: "Hook ➔ Exploration ➔ Personal Insight ➔ Thesis Roadmap" },
+                { title: "BODY PARAGRAPH 1", desc: "Opening + Evidence + Reflection + Conversational.", placeholder: "Opening ➔ Evidence ➔ Personal Reflection ➔ Conversational Element" },
+                { title: "BODY PARAGRAPH 2", desc: "Opening + Counter-argument + Insight + Conversational.", placeholder: "Opening ➔ Counter-Argument ➔ Personal Insight ➔ Conversational Element" },
+                { title: "CONCLUSION", desc: "Summary + Appeal + Call to Action.", placeholder: "Summary ➔ Emotional/Ethical Appeal ➔ Call to Action" }
+            ]
+        };
+
+        const startersData = {
+            narrative: {
+                "Hooks": ["Suddenly...", "Without warning...", "Peering through...", "Trembling...", "Deep inside...", "Long ago..."],
+                "Setting": ["In the shadows...", "Every morning...", "Above the clouds...", "Under the flickering light..."],
+                "Action": ["Leaping forward...", "Frozen in place...", "Clutching the handle...", "Sprinting towards..."]
+            },
+            persuasive: {
+                "Hooks & Openings": ["Have you ever noticed how...", "Let's start with a simple truth:", "Picture this scenario for a moment:", "It's a widely held view that...", "First things first,", "You may find it interesting to know that...", "It's hardly a secret that...", "At first glance,", "Many of us assume that..."],
+                "Exploration & Evidence": ["Digging deeper, we find that...", "For instance, take the case of...", "This concept comes to life when...", "An illustrative example of this is...", "Evidence for this can be found in...", "History shows us that...", "Research suggests that...", "Case in point:", "Statistics show that..."],
+                "Personal Insight": ["On a more personal note,", "This brings to mind a personal anecdote...", "In reflecting on my own experiences,", "I've personally witnessed...", "From what I've seen,", "This resonates with me because...", "I can't help but draw parallels to..."],
+                "Counter-Argument": ["While some argue that...", "It's easy to see why some believe...", "On the flip side...", "Critics might suggest that...", "Although it may seem that...", "Admittedly, there is a view that..."],
+                "Conversational": ["But here's where it gets interesting:", "You're probably wondering...", "So, what's the real story here?", "But let's take a step back for a moment,", "Funny enough,", "Now, bear with me for a second,", "Here’s a thought,", "But guess what?"],
+                "Conclusion & Appeals": ["In conclusion, it is clear that...", "Can we afford to cast aside...", "It's our duty to...", "Let us embrace...", "Imagine for a second a world where...", "Ultimately, the choice is ours to..."]
+            }
+        };
+
+        function setGenre(g) {
+            genre = g;
+            const nBtn = document.getElementById('setup-btn-narrative');
+            const pBtn = document.getElementById('setup-btn-persuasive');
+            nBtn.className = g === 'narrative' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
+            pBtn.className = g === 'persuasive' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
+            document.getElementById('current-genre').innerText = g.charAt(0).toUpperCase() + g.slice(1);
+            paragraphCount = g === 'narrative' ? 6 : 4;
+            totalTimeSecs = g === 'narrative' ? (36 * 60) : (35 * 60);
+            generatePrompt(); // Auto-update prompt when genre changes
+        }
+
+        function generatePrompt() { 
+            const list = promptsData[genre];
+            document.getElementById('prompt-input').value = list[Math.floor(Math.random() * list.length)]; 
+        }
+
+        function startCountdown() {
+            const setup = document.getElementById('setup-screen');
+            const overlay321 = document.getElementById('countdown-overlay');
+            const number = document.getElementById('countdown-number');
+            const targetWords = document.getElementById('target-slider').value;
+            document.getElementById('prompt-display').innerText = `"${document.getElementById('prompt-input').value || 'Writing Task'}"`;
+            document.getElementById('target-display').innerText = targetWords;
+            setup.classList.add('hidden');
+            overlay321.classList.remove('hidden');
+            
+            const sequence = genre === 'narrative' 
+                ? ["1 Character", "1 Place", "1 Problem", "1 Minute", "GO!"] 
+                : ["Be Interesting", "Be Creative", "Be Persuasive", "GO!"];
+            
+            let step = 0;
+            number.innerText = sequence[step];
+
+            const int = setInterval(() => {
+                step++;
+                if (step >= sequence.length) { 
+                    clearInterval(int); 
+                    overlay321.classList.add('hidden'); 
+                    initApp(); 
+                } else { 
+                    number.innerText = sequence[step]; 
+                }
+            }, 1000);
+        }
+
+        function initApp() {
+            timeLeft = totalTimeSecs;
+            isFinished = false;
+            
+            const actionBtn = document.getElementById('floating-action-btn');
+            actionBtn.innerText = "FINISH & ANALYSE";
+            actionBtn.classList.remove('bg-slate-700', 'border-slate-500');
+            actionBtn.classList.add('bg-indigo-600', 'border-indigo-400');
+
+            updateTimerDisplay();
+            renderPacingBars();
+            renderSidebar();
+            document.getElementById('adj-gauge').style.display = genre === 'narrative' ? 'block' : 'none';
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                updatePacingBars();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishWriting(); // Auto finish if time runs out
+                }
+            }, 1000);
+            
+            // Clear editor for a clean slate
+            editor.innerHTML = "";
+
+            // Auto focus editor
+            editor.focus();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            mainTimerEl.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            if (timeLeft < 120) mainTimerEl.classList.add('timer-danger');
+            else mainTimerEl.classList.remove('timer-danger');
+        }
+
+        function renderPacingBars() {
+            pacingBarsEl.innerHTML = '';
+            for (let i = 0; i < paragraphCount; i++) {
+                const seg = document.createElement('div');
+                seg.className = 'pacing-segment';
+                seg.innerHTML = `<div id="fill-${i}" class="pacing-fill"></div>`;
+                pacingBarsEl.appendChild(seg);
+            }
+        }
+
+        function updatePacingBars() {
+            const elapsed = totalTimeSecs - timeLeft;
+            const timePerPara = totalTimeSecs / paragraphCount;
+            const activePara = Math.floor(elapsed / timePerPara);
+            for (let i = 0; i < activePara; i++) {
+                const f = document.getElementById(`fill-${i}`);
+                if (f) { f.style.width = '100%'; f.classList.remove('warning', 'danger'); }
+            }
+            const currentFill = document.getElementById(`fill-${activePara}`);
+            if (currentFill) {
+                const p = (elapsed % timePerPara / timePerPara) * 100;
+                currentFill.style.width = `${p}%`;
+                if (p > 85) currentFill.classList.add('danger');
+                else if (p > 65) currentFill.classList.add('warning');
+            }
+        }
+
+        function renderSidebar() {
+            document.getElementById('structure-list').innerHTML = structures[genre].map(s => `
+                <div class="border-l-4 border-slate-700 pl-3">
+                    <div class="font-black text-slate-300 text-[10px] uppercase">${s.title}</div>
+                    <div class="text-slate-500 mt-1">${s.desc}</div>
+                </div>`).join('');
+            const starterList = document.getElementById('starters-list');
+            starterList.innerHTML = '';
+            for (const [cat, items] of Object.entries(startersData[genre])) {
+                starterList.innerHTML += `<div class="text-[9px] uppercase font-black text-slate-500 mb-2">${cat}</div>
+                <div class="flex flex-wrap gap-1 mb-4">${items.map(s => `<button class="starter-btn" onclick="insertStarter('${s.replace(/'/g, "\\'")}')">${s}</button>`).join('')}</div>`;
+            }
+            document.getElementById('narrative-checklist').style.display = genre === 'narrative' ? 'block' : 'none';
+        }
+
+        function insertStarter(text) { editor.focus(); document.execCommand('insertText', false, text + " "); }
+
+        function updateWordCount() {
+            const text = editor.innerText.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            const target = parseInt(document.getElementById('target-slider').value);
+            document.getElementById('word-count-display').innerText = words;
+            document.getElementById('word-count-display').className = (words >= target * 0.9 && words <= target * 1.1) ? 'text-2xl font-bold text-green-400' : 'text-2xl font-bold';
+            if (genre === 'narrative') calculateAdjectives(text);
+            if (isAnalysisActive) runAnalysis();
+        }
+
+        function calculateAdjectives(text) {
+            if (!text) return;
+            const tokens = text.toLowerCase().match(/\b(\w+)\b/g) || [];
+            let count = tokens.filter(t => commonAdjectives.has(t) || (t.length > 4 && adjSuffixes.some(s => t.endsWith(s)))).length;
+            const p = Math.round((count / tokens.length) * 100) || 0;
+            document.getElementById('adj-percent').innerText = p + "%";
+            document.getElementById('adj-percent').className = p >= 12 ? 'text-2xl font-bold text-green-400' : 'text-2xl font-bold text-slate-300';
+        }
+
+        function syncScroll() { overlay.scrollTop = editorContainer.scrollTop; }
+
+        function handleFloatingAction() {
+            if (!isFinished) {
+                finishWriting();
+            } else {
+                toggleAnalysis();
+            }
+        }
+
+        function finishWriting() {
+            isFinished = true;
+            clearInterval(timerInterval); // Stop the timer
+            const words = document.getElementById('word-count-display').innerText;
+            
+            const timeTaken = totalTimeSecs - timeLeft;
+            const m = Math.floor(timeTaken / 60);
+            const s = timeTaken % 60;
+            
+            document.getElementById('final-words').innerText = words;
+            document.getElementById('final-time').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            
+            document.getElementById('finished-screen').classList.remove('hidden');
+        }
+
+        function reviewWork() {
+            document.getElementById('finished-screen').classList.add('hidden');
+            if (!isAnalysisActive) {
+                toggleAnalysis(); // Automatically turn on analysis for review
+            }
+        }
+
+        function toggleAnalysis() {
+            isAnalysisActive = !isAnalysisActive;
+            const btn = document.getElementById('floating-action-btn');
+            const legend = document.getElementById('legend');
+            if (isAnalysisActive) {
+                btn.innerText = "HIDE ANALYSIS"; 
+                btn.classList.replace('bg-indigo-600', 'bg-slate-700');
+                btn.classList.replace('border-indigo-400', 'border-slate-500');
+                overlay.classList.remove('hidden'); 
+                editor.classList.add('opacity-30'); 
+                legend.classList.remove('hidden'); 
+                runAnalysis();
+            } else {
+                btn.innerText = "SHOW ANALYSIS"; 
+                btn.classList.replace('bg-slate-700', 'bg-indigo-600');
+                btn.classList.replace('border-slate-500', 'border-indigo-400');
+                overlay.classList.add('hidden'); 
+                editor.classList.remove('opacity-30'); 
+                legend.classList.add('hidden');
+            }
+        }
+
+        /**
+         * TWO-PASS PRE-SCAN ANALYSIS ENGINE
+         * Evaluates all text first to ensure ALL instances of a repeated word are highlighted.
+         */
+        function runAnalysis() {
+            let html = editor.innerHTML;
+            if (!html) { overlay.innerHTML = ''; return; }
+
+            const blueStartSet = new Set(['the','it','a','an','this','these','those','they','there','then','he','she','his','her','their','its','i','we','you','someone','something']);
+            const basicSet = new Set(['went','got','made','did','said','looked','saw','came','put','took','gave','walked','ran','sat','stood','turned','moved','thing','stuff','very','really','big','small','nice','good','bad','fun','happy','sad','lot']);
+            const passiveAuxSet = new Set(['was','were','is','are','be','been','being','has','had','have','get','got','getting','gotten']);
+            const filterSet = new Set(['saw','heard','noticed','realised','realized','thought','felt','watched','looked','wondered','seemed','appeared']);
+            
+            // Expanded stop words to isolate significant nouns/verbs
+            const stopWords = new Set([
+                'the','and','of','to','in','a','an','or','but','for','as','with','on','at','by','from','up','down','out','over','under','into','about','through','after','before','between','without','against','during',
+                'it','nbsp','amp','lt','gt','quot',
+                'is','was','are','were','am','be','been','being','have','has','had','do','does','did','will','would','can','could','should','may','might','must',
+                'i','you','he','she','we','they','me','him','her','us','them','my','your','his','their','its','our',
+                'this','that','these','those','then','than','so','because','very','really','just','too','also','not','no','yes','only','quite','rather',
+                'when','where','why','how','all','any','both','each','few','more','most','other','some','such','same','different'
+            ]);
+
+            // Split HTML by tags to safely isolate text chunks
+            const htmlParts = html.split(/(<[^>]+>)/g);
+            
+            // PASS 1: Tokenize and Map Sentences
+            let tokenList = [];
+            let sentenceIdx = 0;
+            let globalWordIdx = 0;
+            
+            for (let i = 0; i < htmlParts.length; i++) {
+                if (i % 2 !== 0) {
+                    // HTML Tag
+                    const tag = htmlParts[i].toLowerCase();
+                    if (tag.includes('<br') || tag.includes('<div') || tag.includes('<p')) {
+                        sentenceIdx++;
+                    }
+                    tokenList.push({ type: 'tag', text: htmlParts[i] });
+                    continue;
+                }
+
+                let textNode = htmlParts[i];
+                const tokens = textNode.split(/([a-zA-Z]+)/);
+                
+                for (let j = 0; j < tokens.length; j++) {
+                    let token = tokens[j];
+                    if (/^[a-zA-Z]+$/.test(token)) {
+                        tokenList.push({
+                            type: 'word',
+                            text: token,
+                            low: token.toLowerCase(),
+                            globalIdx: globalWordIdx++,
+                            sentenceIdx: sentenceIdx
+                        });
+                    } else {
+                        if (/[.!?]/.test(token)) {
+                            sentenceIdx++;
+                        }
+                        tokenList.push({ type: 'text', text: token });
+                    }
+                }
+            }
+
+            // Find Repetitions (significant words in same or adjoining sentences)
+            let wordInstances = {};
+            for (let t of tokenList) {
+                if (t.type === 'word' && !stopWords.has(t.low) && t.low.length >= 3) {
+                    if (!wordInstances[t.low]) wordInstances[t.low] = [];
+                    wordInstances[t.low].push(t);
+                }
+            }
+
+            let repeatedGlobalIndices = new Set();
+            for (const low in wordInstances) {
+                const instances = wordInstances[low];
+                for (let i = 0; i < instances.length; i++) {
+                    for (let j = i + 1; j < instances.length; j++) {
+                        if (Math.abs(instances[i].sentenceIdx - instances[j].sentenceIdx) <= 1) {
+                            repeatedGlobalIndices.add(instances[i].globalIdx);
+                            repeatedGlobalIndices.add(instances[j].globalIdx);
+                        }
+                    }
+                }
+            }
+
+            // PASS 2: Generate Highlight HTML
+            let resultHtml = "";
+            let isSentenceStart = true;
+            let prevWord = "";
+            let prevPrevWord = "";
+
+            for (let t of tokenList) {
+                if (t.type === 'tag') {
+                    const tag = t.text.toLowerCase();
+                    if (tag.includes('<br') || tag.includes('<div') || tag.includes('<p')) {
+                        isSentenceStart = true;
+                    }
+                    resultHtml += t.text;
+                } else if (t.type === 'text') {
+                    if (/[.!?]/.test(t.text)) {
+                        isSentenceStart = true;
+                    }
+                    resultHtml += t.text; // Text from innerHTML is already escaped natively
+                } else if (t.type === 'word') {
+                    let cls = "";
+                    let low = t.low;
+
+                    let isPassivePattern = false;
+                    if (low.endsWith('ed') || low.endsWith('en') || ['hit','hurt','cut','put','set'].includes(low)) {
+                        if (['was','were','is','are','be','been','being'].includes(prevWord)) isPassivePattern = true;
+                        else if (['has','have','had'].includes(prevPrevWord) && prevWord === 'been') isPassivePattern = true;
+                        else if (['get','got','getting','gotten'].includes(prevWord)) isPassivePattern = true;
+                    }
+
+                    if (isSentenceStart && blueStartSet.has(low)) cls = "c-blu";
+                    else if (isPassivePattern) cls = "c-red";
+                    else if (repeatedGlobalIndices.has(t.globalIdx)) cls = "c-ora";
+                    else if (filterSet.has(low)) cls = "c-pur";
+                    else if (basicSet.has(low)) cls = "c-grn";
+                    else if (passiveAuxSet.has(low)) cls = "c-red";
+
+                    resultHtml += cls ? `<span class="${cls}">${t.text}</span>` : t.text;
+                    
+                    isSentenceStart = false;
+                    prevPrevWord = prevWord;
+                    prevWord = low;
+                }
+            }
+
+            // Passive Pattern Overlay (multi-word highlighting)
+            const passivePatterns = [
+                /\b(was|were|is|are|be|been|being)\s+\w+(ed|en)\b/gi,
+                /\b(has|have|had)\s+been\s+\w+(ed|en)\b/gi,
+                /\b(got|get|getting)\s+\w+(ed|en)?\b/gi
+            ];
+
+            passivePatterns.forEach(pattern => {
+                resultHtml = resultHtml.replace(pattern, (match) => {
+                    if (match.includes('class=')) return `<span class="c-red">${match}</span>`;
+                    return `<span class="c-red">${match}</span>`;
+                });
+            });
+
+            overlay.innerHTML = resultHtml;
+        }
+
+        // Intercept formatting inputs to guarantee perfect DOM alignment between editor & overlay
+        editor.addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter') { 
+                e.preventDefault(); 
+                document.execCommand('insertLineBreak'); 
+            }
+            if (e.key === 'Tab') { 
+                e.preventDefault(); 
+                document.execCommand('insertText', false, '    '); 
+            } 
+        });
+
+        // Strip incoming pasted styles to prevent grid box breaking
+        editor.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+
+        setGenre('narrative'); generatePrompt();
+    </script>
+</body>
+</html>
