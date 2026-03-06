@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NAPLAN Writing Lab</title>
+    <title>Writing Dojo | Combat Arena</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Added Compromise.js for accurate grammar/adjective parsing -->
@@ -14,7 +14,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@400;700&family=Lexend:wght@300;400;600&family=JetBrains+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Merriweather:wght@400;700&family=Lexend:wght@300;400;600&family=JetBrains+Mono&display=swap');
+
+        :root {
+            --dojo-red: #ef4444;
+            --dojo-dark: #0f172a;
+        }
 
         body {
             transition: background-color 0.3s, color 0.3s;
@@ -25,7 +30,7 @@
         .font-serif { font-family: 'Merriweather', serif; }
         .font-lexend { font-family: 'Lexend', sans-serif; }
 
-        .dark { background-color: #0f172a; color: #f1f5f9; }
+        .dark { background-color: var(--dojo-dark); color: #f1f5f9; }
 
         /* Light Mode Theme Overrides */
         body.light { background-color: #f8fafc; color: #0f172a; }
@@ -40,17 +45,17 @@
         body.light .text-slate-400 { color: #475569 !important; }
         body.light .text-slate-500 { color: #64748b !important; }
         body.light .starter-btn { background: rgba(241, 245, 249, 0.8); border-color: #cbd5e1; color: #334155; }
-        body.light .starter-btn:hover { background: rgba(139, 92, 246, 0.1); border-color: #8b5cf6; }
+        body.light .starter-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--dojo-red); }
 
-        /* Tooltip Popup Theming - High Contrast */
+        /* Tooltip Popup Theming - High Contrast Dojo Style */
         .tooltip-popup {
             background-color: #020617 !important; 
-            border: 1px solid #4f46e5 !important; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid var(--dojo-red) !important; 
+            box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.15), 0 10px 10px -5px rgba(239, 68, 68, 0.1) !important;
         }
         body.light .tooltip-popup {
             background-color: #ffffff !important;
-            border: 1px solid #818cf8 !important;
+            border: 1px solid var(--dojo-red) !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05) !important;
         }
 
@@ -64,8 +69,8 @@
             transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0s;
         }
 
-        .pill-active { background-color: #4f46e5 !important; border-color: #818cf8 !important; color: #ffffff !important; box-shadow: inset 0 3px 6px rgba(0,0,0,0.4) !important; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .pill-active { background-color: var(--dojo-red) !important; border-color: #f87171 !important; color: #ffffff !important; box-shadow: inset 0 3px 6px rgba(0,0,0,0.4) !important; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .writing-area { min-height: 500px; font-size: 1.125rem; line-height: 1.8; outline: none; white-space: pre-wrap; word-wrap: break-word; }
 
         /* Analysis Highlight Colors */
@@ -77,87 +82,92 @@
         .c-pnk { color: #f472b6 !important; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 4px; } 
         .c-yel { color: #facc15 !important; text-decoration: underline; text-decoration-style: double; text-underline-offset: 4px; } 
 
-        .pacing-segment { height: 8px; border-radius: 4px; background: #334155; flex-grow: 1; margin: 0 2px; overflow: hidden; }
-        .pacing-fill { height: 100%; width: 0%; background: #22c55e; transition: width 1s linear; }
+        .pacing-segment { height: 8px; border-radius: 4px; background: #1e293b; flex-grow: 1; margin: 0 2px; overflow: hidden; }
+        .pacing-fill { height: 100%; width: 0%; background: var(--dojo-red); transition: width 1s linear; }
         .pacing-fill.warning { background: #eab308; }
         .pacing-fill.danger { background: #ef4444; }
 
-        .starter-btn { text-align: left; padding: 4px 8px; background: rgba(51, 65, 85, 0.5); border: 1px solid rgba(71, 85, 105, 0.5); border-radius: 6px; font-size: 0.7rem; line-height: 1.2; cursor: pointer; transition: all 0.2s; }
-        .starter-btn:hover { background: rgba(139, 92, 246, 0.3); border-color: #8b5cf6; }
+        .starter-btn { text-align: left; padding: 4px 8px; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(71, 85, 105, 0.5); border-radius: 6px; font-size: 0.7rem; line-height: 1.2; cursor: pointer; transition: all 0.2s; }
+        .starter-btn:hover { background: rgba(239, 68, 68, 0.15); border-color: var(--dojo-red); }
 
         /* Sleek Scrollbars */
-        * { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+        * { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
 
         /* Year Level Tabs */
         .yr-tab { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; background: #1e293b; border: 1px solid #334155; color: #64748b; }
-        .yr-tab.active { background: #4f46e5; border-color: #818cf8; color: white; }
+        .yr-tab.active { background: var(--dojo-red); border-color: #f87171; color: white; }
 
         /* Zen Focus Mode */
         header, #sidebar, #legend { transition: opacity 0.5s ease-in-out; }
         .zen-focus header, .zen-focus #sidebar, .zen-focus #legend { opacity: 0.15; pointer-events: none; }
     </style>
 </head>
-<body class="dark min-h-screen flex flex-col font-sans" onmousemove="handleInteraction()">
+<body class="dark min-h-screen flex flex-col font-sans">
 
     <div id="global-tooltip" class="fixed z-[9999] w-[400px] max-w-[92vw] p-4 rounded-xl tooltip-popup pointer-events-none shadow-2xl"></div>
 
-    <!-- Setup Screen -->
+    <!-- Setup Screen (Mission Briefing) -->
     <div id="setup-screen" class="fixed inset-0 z-50 flex items-center justify-center p-6 glass">
-        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-2xl border border-slate-700 relative">
+        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-[0_0_40px_rgba(239,68,68,0.15)] border border-slate-700 relative">
             <button onclick="toggleTheme()" class="theme-toggle-btn absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg hover:bg-slate-700 transition">☀️</button>
-            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400 italic tracking-tighter">NAPLAN Writing Lab</h1>
+            
+            <div class="flex justify-center mb-2">
+                <span class="text-4xl text-red-500">⛩️</span>
+            </div>
+            <h1 class="text-3xl font-black mb-1 text-center text-white tracking-tighter uppercase italic">Writing Dojo</h1>
+            <p class="text-center text-red-500 font-bold text-xs tracking-[0.2em] mb-8 uppercase">Combat Arena</p>
             
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest text-center">Select Genre</label>
+                    <label class="block text-sm font-black mb-3 text-slate-400 uppercase tracking-widest text-center">Select Mission Type</label>
                     <div class="flex gap-2">
-                        <button onclick="setGenre('narrative')" id="setup-btn-narrative" class="flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold transition">Narrative</button>
-                        <button onclick="setGenre('persuasive')" id="setup-btn-persuasive" class="flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition">Persuasive</button>
+                        <button onclick="setGenre('narrative')" id="setup-btn-narrative" class="flex-1 py-3 rounded-lg border-2 border-red-600 bg-red-600 text-white font-bold transition uppercase">The Story Quest</button>
+                        <button onclick="setGenre('persuasive')" id="setup-btn-persuasive" class="flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition uppercase">The Persuasive Duel</button>
                     </div>
                 </div>
 
                 <div id="char-name-group">
-                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest">Main Character Name</label>
+                    <label class="block text-sm font-bold mb-3 text-slate-400 uppercase tracking-widest">Nominate Hero Name</label>
                     <div class="flex gap-2">
-                        <input id="char-name-input" type="text" placeholder="e.g. Cassidy" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
-                        <button onclick="generateName()" class="bg-slate-700 px-3 py-2 rounded-lg hover:bg-slate-600 transition text-[9px] font-black text-blue-400 uppercase whitespace-nowrap border border-slate-600 shadow-lg">Choose For Me</button>
+                        <input id="char-name-input" type="text" placeholder="e.g. Cassidy" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-red-500 outline-none text-white">
+                        <button onclick="generateName()" class="bg-slate-700 px-3 py-2 rounded-lg hover:bg-slate-600 transition text-[9px] font-black text-red-400 uppercase whitespace-nowrap border border-slate-600 shadow-lg">Choose For Me</button>
                     </div>
                 </div>
 
                 <div>
                     <div class="flex justify-between items-end mb-3">
-                        <label class="text-sm font-medium text-slate-400 uppercase tracking-widest">Word Count Goal: <span id="goal-val" class="text-blue-400 font-bold">500</span></label>
+                        <label class="text-sm font-bold text-slate-400 uppercase tracking-widest">Word Target: <span id="goal-val" class="text-red-500 font-black">500</span></label>
                         <div class="flex gap-1">
-                            <div onclick="setYearTarget(3, 250)" id="yr-3" class="yr-tab">Yr3</div>
-                            <div onclick="setYearTarget(5, 350)" id="yr-5" class="yr-tab">Yr5</div>
-                            <div onclick="setYearTarget(7, 400)" id="yr-7" class="yr-tab">Yr7</div>
-                            <div onclick="setYearTarget(9, 450)" id="yr-9" class="yr-tab">Yr9</div>
+                            <div onclick="setYearTarget(3, 250)" id="yr-3" class="yr-tab">Y3</div>
+                            <div onclick="setYearTarget(5, 350)" id="yr-5" class="yr-tab">Y5</div>
+                            <div onclick="setYearTarget(7, 400)" id="yr-7" class="yr-tab">Y7</div>
+                            <div onclick="setYearTarget(9, 450)" id="yr-9" class="yr-tab">Y9</div>
                         </div>
                     </div>
-                    <input id="target-slider" type="range" min="100" max="600" step="25" value="500" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" oninput="updateWordSliderValue(this.value)">
+                    <input id="target-slider" type="range" min="100" max="600" step="25" value="500" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer accent-red-600" oninput="updateWordSliderValue(this.value)">
                 </div>
 
                 <div>
                     <div class="flex justify-between items-end mb-3 mt-2">
-                        <label class="text-sm font-medium text-slate-400 uppercase tracking-widest">Time Limit: <span id="time-val" class="text-blue-400 font-bold">35 mins</span></label>
-                        <button id="no-limit-btn" onclick="toggleNoLimit()" class="text-[10px] font-bold px-3 py-1 rounded bg-slate-800 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700 transition uppercase tracking-wider">No Limit</button>
+                        <label class="text-sm font-bold text-slate-400 uppercase tracking-widest">Battle Timer: <span id="time-val" class="text-red-500 font-black">35 mins</span></label>
+                        <button id="no-limit-btn" onclick="toggleNoLimit()" class="text-[10px] font-bold px-3 py-1 rounded bg-slate-800 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700 transition uppercase tracking-wider">Free Play</button>
                     </div>
-                    <input id="time-slider" type="range" min="5" max="120" step="5" value="35" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" oninput="updateTimeSliderValue(this.value)">
+                    <input id="time-slider" type="range" min="5" max="120" step="5" value="35" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer accent-red-600" oninput="updateTimeSliderValue(this.value)">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-3 text-slate-400 uppercase tracking-widest mt-2">Prompt</label>
+                    <label class="block text-sm font-bold mb-3 text-slate-400 uppercase tracking-widest mt-2">Mission Objective</label>
                     <div class="flex gap-2 mb-2">
-                        <input id="prompt-input" type="text" placeholder="Type your own prompt here..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                        <input id="prompt-input" type="text" placeholder="Type your own objective here..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-red-500 outline-none text-white">
                         <button onclick="generatePrompt()" class="bg-slate-700 p-2 rounded-lg hover:bg-slate-600 transition">🎲</button>
                     </div>
                 </div>
 
-                <button onclick="startCountdown()" class="w-full py-4 mt-4 rounded-xl bg-green-600 text-white font-black text-xl hover:bg-green-500 shadow-lg transition transform hover:scale-105 uppercase tracking-wider">
-                    Go!
+                <button onclick="startCountdown()" class="w-full py-4 mt-4 rounded-xl bg-red-600 text-white font-black text-xl hover:bg-red-500 shadow-lg transition transform hover:scale-105 uppercase tracking-wider italic">
+                    Begin Mission
                 </button>
             </div>
         </div>
@@ -165,26 +175,26 @@
 
     <!-- 321 Countdown Overlay -->
     <div id="countdown-overlay" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 hidden">
-        <div id="countdown-number" class="text-5xl md:text-7xl lg:text-[9rem] font-black text-white italic text-center px-4 uppercase tracking-tight"></div>
+        <div id="countdown-number" class="text-5xl md:text-7xl lg:text-[9rem] font-black text-red-500 italic text-center px-4 uppercase tracking-tight"></div>
     </div>
 
     <!-- Finished Modal Overlay -->
     <div id="finished-screen" class="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm hidden">
-        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-2xl border border-slate-700 text-center">
-            <h2 class="text-4xl font-black mb-2 text-green-400 uppercase tracking-tighter">Done!</h2>
-            <p class="text-slate-400 mb-6">Fantastic work completing your practice.</p>
+        <div class="max-w-md w-full p-8 rounded-2xl bg-slate-900 shadow-[0_0_50px_rgba(239,68,68,0.2)] border border-red-900 text-center">
+            <h2 class="text-4xl font-black mb-2 text-red-500 uppercase tracking-tighter italic">Mission Accomplished</h2>
+            <p class="text-slate-400 mb-6">Fantastic work completing your practice in the arena.</p>
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div class="p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Words Written</div>
+                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Arena Points</div>
                     <div id="final-words" class="text-3xl font-black text-white">0</div>
                 </div>
                 <div class="p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Time Taken</div>
+                    <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Combat Time</div>
                     <div id="final-time" class="text-3xl font-black text-white">0:00</div>
                 </div>
             </div>
-            <button onclick="reviewWork()" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-500 shadow-lg transition">
-                Analyse & Edit
+            <button onclick="reviewWork()" class="w-full py-4 rounded-xl bg-red-600 text-white font-black text-lg hover:bg-red-500 shadow-lg transition uppercase tracking-widest italic">
+                Tactical Review
             </button>
         </div>
     </div>
@@ -193,9 +203,9 @@
     <div class="max-w-[1600px] mx-auto p-4 flex flex-col h-screen w-full">
         <header class="flex items-center justify-between mb-4 p-4 rounded-xl glass border-slate-700 shrink-0">
             <div class="flex items-center gap-6">
-                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Genre</span><div id="current-genre" class="text-lg font-black text-blue-400 italic">Narrative</div></div>
-                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Timer</span><div id="main-timer" class="text-2xl font-mono font-bold">35:00</div></div>
-                <div id="pacing-bars-container" class="hidden md:block"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Paragraph Pacing</span><div id="pacing-bars" class="flex w-64 mt-1"></div></div>
+                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Mission Type</span><div id="current-genre" class="text-lg font-black text-red-500 italic uppercase">The Quest</div></div>
+                <div><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Stamina Timer</span><div id="main-timer" class="text-2xl font-mono font-bold text-white">35:00</div></div>
+                <div id="pacing-bars-container" class="hidden md:block"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Combat Pacing</span><div id="pacing-bars" class="flex w-64 mt-1"></div></div>
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="toggleAudio()" id="audio-btn" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg hover:bg-slate-700 transition relative group">
@@ -210,8 +220,8 @@
                     ☀️
                     <div class="absolute -bottom-8 bg-slate-800 text-xs px-2 py-1 rounded hidden group-hover:block whitespace-nowrap text-slate-300 shadow-lg z-50">Theme</div>
                 </button>
-                <div id="adj-gauge" class="hidden text-center border-l border-slate-700 pl-4 ml-2"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Adjectives</span><div class="flex items-center gap-2 justify-end"><span id="adj-percent" class="text-2xl font-bold">0%</span></div></div>
-                <div class="text-right border-l border-slate-700 pl-4 ml-2"><span id="word-count-display" class="text-2xl font-bold">0</span><span class="text-slate-500 text-sm font-bold"> / <span id="target-display">500</span> words</span></div>
+                <div id="adj-gauge" class="hidden text-center border-l border-slate-700 pl-4 ml-2"><span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Descriptors</span><div class="flex items-center gap-2 justify-end"><span id="adj-percent" class="text-2xl font-bold text-white">0%</span></div></div>
+                <div class="text-right border-l border-slate-700 pl-4 ml-2"><span id="word-count-display" class="text-2xl font-black text-red-500">0</span><span class="text-slate-500 text-sm font-bold"> / <span id="target-display">500</div>
             </div>
         </header>
 
@@ -227,8 +237,8 @@
                     </div>
                 </div>
                 <div id="pre-finish-controls" class="absolute bottom-6 right-8 z-30">
-                    <button onclick="finishWriting()" class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-black uppercase tracking-wider text-sm shadow-xl transition transform hover:scale-105">
-                        FINISH
+                    <button onclick="finishWriting()" class="px-8 py-3 rounded-xl bg-red-600 text-white font-black uppercase tracking-widest text-sm shadow-[0_0_15px_rgba(239,68,68,0.4)] transition transform hover:scale-105 italic">
+                        END MISSION
                     </button>
                 </div>
             </div>
@@ -236,79 +246,79 @@
             <!-- Sidebar -->
             <div id="sidebar" class="w-2/5 flex flex-col gap-4 overflow-y-auto pr-2 pb-10">
                 <div id="post-finish-controls" class="hidden flex flex-col gap-3 shrink-0 mb-2">
-                    <button id="toggle-analysis-btn" onclick="toggleAnalysis()" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm uppercase tracking-wider hover:bg-indigo-500 transition shadow-[0_0_15px_rgba(79,70,229,0.4)] border border-indigo-400">HIDE ANALYSIS</button>
+                    <button id="toggle-analysis-btn" onclick="toggleAnalysis()" class="w-full py-4 rounded-xl bg-red-600 text-white font-black text-sm uppercase tracking-widest hover:bg-red-500 transition shadow-[0_0_20px_rgba(239,68,68,0.4)] italic">ACTIVATE TACTICAL HUD</button>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="read-aloud-btn" onclick="toggleSpeech()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                        <button id="read-aloud-btn" onclick="toggleSpeech()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
                             🔊 <span>READ ALOUD</span>
                         </button>
-                        <button id="copy-text-btn" onclick="copyText()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                        <button id="copy-text-btn" onclick="copyText()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             <span>COPY TEXT</span>
                         </button>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="export-pdf-btn" onclick="exportPDF()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
-                            📄 EXPORT PDF
+                        <button id="export-pdf-btn" onclick="exportPDF()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2">
+                            📄 DOWNLOAD INTEL (PDF)
                         </button>
                         <!-- MATCHING TEEAL: Native link, no 'return', instant execution -->
-                        <a href="mailto:" id="email-report-btn" onclick="emailReport(this)" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer" style="text-decoration: none;">
-                            ✉️ EMAIL
+                        <a href="mailto:" id="email-report-btn" onclick="emailReport(this)" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-slate-300 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-700 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer" style="text-decoration: none;">
+                            ✉️ EMAIL SENSEI
                         </a>
                     </div>
                 </div>
                 
                 <!-- Advanced Metrics Panel -->
-                <div id="advanced-metrics-panel" class="hidden p-5 rounded-2xl bg-slate-800/80 border border-indigo-500 shadow-xl shrink-0 transition-all duration-500">
-                    <h3 class="font-black text-sm mb-4 text-indigo-400 uppercase tracking-widest flex items-center gap-2">STYLE & FLOW REPORT</h3>
+                <div id="advanced-metrics-panel" class="hidden p-5 rounded-2xl bg-slate-800/80 border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.1)] shrink-0 transition-all duration-500">
+                    <h3 class="font-black text-sm mb-4 text-red-500 uppercase tracking-widest flex items-center gap-2 italic">Post-Match Combat Report</h3>
                     <div id="metrics-container" class="space-y-3"></div>
                 </div>
 
-                <div id="structure-panel" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl shrink-0 transition-all duration-300"><h3 class="font-bold text-sm mb-3 text-blue-400 uppercase tracking-widest">Structure Guide</h3><div id="structure-list" class="space-y-2 text-xs leading-relaxed"></div></div>
-                <div id="starters-panel" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl flex-1 transition-all duration-300"><h3 class="font-bold text-sm mb-3 text-purple-400 uppercase tracking-widest">Sentence Starters</h3><div id="starters-list" class="space-y-4"></div></div>
+                <div id="structure-panel" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl shrink-0 transition-all duration-300"><h3 class="font-black text-sm mb-3 text-red-400 uppercase tracking-widest italic">Combat Blueprint</h3><div id="structure-list" class="space-y-2 text-xs leading-relaxed"></div></div>
+                <div id="starters-panel" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl flex-1 transition-all duration-300"><h3 class="font-black text-sm mb-3 text-blue-400 uppercase tracking-widest italic">Attack Combos</h3><div id="starters-list" class="space-y-4"></div></div>
 
                 <div id="narrative-checklist" class="p-5 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-xl shrink-0 text-left">
-                    <h3 class="font-bold text-[10px] mb-3 text-orange-400 uppercase tracking-widest text-left">Literary Device Self-Check</h3>
+                    <h3 class="font-black text-[10px] mb-3 text-orange-400 uppercase tracking-widest text-left italic">Advanced Buffs (Literary Devices)</h3>
                     <div id="devices-list" class="grid grid-cols-2 gap-x-2 gap-y-3 text-[10px] items-start">
-                        <!-- Restored full 10 devices -->
+                        <!-- EXACT PRESERVATION OF ALL 10 DEVICES -->
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Metaphor</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Metaphor</strong><p class="text-[11px] text-slate-300 leading-relaxed">Saying one thing <em class="text-slate-100 italic">is</em> another.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The hallway was a wild zoo."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Fear was a heavy chain around his ankles."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Metaphor</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Metaphor</strong><p class="text-[11px] text-slate-300 leading-relaxed">Saying one thing <em class="text-slate-100 italic">is</em> another.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The hallway was a wild zoo."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Fear was a heavy chain around his ankles."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Imagery</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Imagery</strong><p class="text-[11px] text-slate-300 leading-relaxed">Painting a vivid word-picture.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Casting long shadows, the sun sank behind the peaks."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The damp, earthy scent of moss filled the ancient cavern."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Imagery</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Imagery</strong><p class="text-[11px] text-slate-300 leading-relaxed">Painting a vivid word-picture.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Casting long shadows, the sun sank behind the peaks."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The damp, earthy scent of moss filled the ancient cavern."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Simile</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Simile</strong><p class="text-[11px] text-slate-300 leading-relaxed">Comparing using 'like' or 'as'.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Liam stood as still as a stone statue."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Her heart hammered like a trapped bird against her ribs."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Simile</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Simile</strong><p class="text-[11px] text-slate-300 leading-relaxed">Comparing using 'like' or 'as'.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Liam stood as still as a stone statue."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Her heart hammered like a trapped bird against her ribs."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Using Senses</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Using Senses</strong><p class="text-[11px] text-slate-300 leading-relaxed">Describing sights, sounds, or smells.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The bitter, icy wind stung his lips."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The metallic tang of fear coated the back of his throat."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Using Senses</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Using Senses</strong><p class="text-[11px] text-slate-300 leading-relaxed">Describing sights, sounds, or smells.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The bitter, icy wind stung his lips."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The metallic tang of fear coated the back of his throat."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Personification</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Personification</strong><p class="text-[11px] text-slate-300 leading-relaxed">Human traits to objects.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Screaming through glass, the gale demanded entry."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The old floorboards groaned in protest under his weight."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Personification</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Personification</strong><p class="text-[11px] text-slate-300 leading-relaxed">Human traits to objects.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Screaming through glass, the gale demanded entry."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The old floorboards groaned in protest under his weight."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Onomatopoeia</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Onomatopoeia</strong><p class="text-[11px] text-slate-300 leading-relaxed">Words that sound like their meaning.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Hissing violently, the radiator clanked."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"With a deafening crack, the massive oak splintered."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Onomatopoeia</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Onomatopoeia</strong><p class="text-[11px] text-slate-300 leading-relaxed">Words that sound like their meaning.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Hissing violently, the radiator clanked."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"With a deafening crack, the massive oak splintered."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Alliteration</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Alliteration</strong><p class="text-[11px] text-slate-300 leading-relaxed">Repeating starting sounds.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The sinister serpent prepared to strike."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Silent shadows slipped swiftly across the street."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Alliteration</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Alliteration</strong><p class="text-[11px] text-slate-300 leading-relaxed">Repeating starting sounds.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"The sinister serpent prepared to strike."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"Silent shadows slipped swiftly across the street."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Synecdoche</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Synecdoche</strong><p class="text-[11px] text-slate-300 leading-relaxed">Part represents the whole.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"A fleet of white sails approached the city."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"All eyes nervously turned toward the heavy iron door."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Synecdoche</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Synecdoche</strong><p class="text-[11px] text-slate-300 leading-relaxed">Part represents the whole.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"A fleet of white sails approached the city."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"All eyes nervously turned toward the heavy iron door."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Asyndeton</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Asyndeton</strong><p class="text-[11px] text-slate-300 leading-relaxed">Skipping conjunctions to speed flow.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Sweating, panting, bleeding, he dragged himself from the wreckage."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"She ran, slipped, fell, scrambled back up."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Asyndeton</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Asyndeton</strong><p class="text-[11px] text-slate-300 leading-relaxed">Skipping conjunctions to speed flow.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"Sweating, panting, bleeding, he dragged himself from the wreckage."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"She ran, slipped, fell, scrambled back up."</p></div>
                         </div>
                         <div class="group outline-none cursor-pointer w-full" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-orange-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-orange-400 transition-colors pb-[1px] pointer-events-auto">Juxtaposition</span></label>
-                            <div class="js-tooltip-content hidden"><strong class="text-blue-400 block mb-1 text-[11px] uppercase">Juxtaposition</strong><p class="text-[11px] text-slate-300 leading-relaxed">Contrasting opposites.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"A relentless blizzard raged outside, while a delicate fire crackled inside."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The deafening silence of the abandoned house contrasted with the chaotic city streets below."</p></div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-full pointer-events-none"><input type="checkbox" class="form-checkbox bg-slate-700 text-red-500 shrink-0 pointer-events-auto"><span class="border-b border-dashed border-slate-500 group-hover:border-red-400 transition-colors pb-[1px] pointer-events-auto">Juxtaposition</span></label>
+                            <div class="js-tooltip-content hidden"><strong class="text-red-400 block mb-1 text-[11px] uppercase">Juxtaposition</strong><p class="text-[11px] text-slate-300 leading-relaxed">Contrasting opposites.</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50">"A relentless blizzard raged outside, while a delicate fire crackled inside."</p><p class="text-[11px] text-orange-400 italic pl-2 border-l-2 border-orange-500/50 mt-1">"The deafening silence of the abandoned house contrasted with the chaotic city streets below."</p></div>
                         </div>
                     </div>
                 </div>
@@ -316,19 +326,19 @@
         </div>
     </div>
 
-    <!-- SURGICAL REPLACEMENT OF LEGEND -->
+    <!-- SURGICAL REPLACEMENT OF LEGEND WITH DOJO BRANDING -->
     <div id="legend" class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 px-4 md:px-6 py-3 rounded-full glass border-slate-600 flex flex-nowrap items-center justify-center gap-2.5 md:gap-4 text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden shadow-2xl z-[100] w-max max-w-[98vw] overflow-hidden whitespace-nowrap">
 
-      <!-- BAD START -->
+      <!-- STEALTH STARTER (Previously Bad Start) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('blu', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500 shrink-0"></span> Bad Start
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_#3b82f6]"></span> Yuck Starts
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-blue-400 block mb-2 text-sm uppercase tracking-wider">Bad Starts <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-blue-400 block mb-2 text-sm uppercase tracking-wider italic">Yuck Starts <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="mb-2 text-xs text-slate-300 leading-relaxed">
-            Starting with pronouns (<em>He, She, It, They</em>), <strong>Character Names</strong>, or <em>The...</em> too often makes your writing feel basic and repetitive.
+            Starting with pronouns (<em>He, She, His, Here, It, I, Me, My, They</em>), <strong>Character Names</strong>, or <em>The, A, An...</em> too often makes your writing feel basic and repetitive.
           </p>
 
           <div class="grid grid-cols-2 gap-2 mt-2">
@@ -370,14 +380,14 @@
         </div>
       </div>
 
-      <!-- NAME -->
+      <!-- 7-FOLD PATH (Previously Name) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('pnk', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-pink-400 shrink-0"></span> Name
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-pink-400 shrink-0 shadow-[0_0_8px_#f472b6]"></span> Name Tags
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-pink-400 block mb-1 text-sm uppercase tracking-wider">Character Name <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-pink-400 block mb-1 text-sm uppercase tracking-wider italic">Name Tags <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed">
             Overusing names makes your writing sound flat. Swap some names for sharp descriptive labels.
           </p>
@@ -420,16 +430,16 @@
         </div>
       </div>
 
-      <!-- BASIC WORD -->
+      <!-- VERB SHURIKEN (Previously Basic Word) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('grn', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 shrink-0"></span> Basic Word
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 shrink-0 shadow-[0_0_8px_#22c55e]"></span> Basic Words
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-green-400 block mb-2 text-sm uppercase tracking-wider">Basic Vocabulary <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-green-400 block mb-2 text-sm uppercase tracking-wider italic">Basic Words <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-3">
-            Common words don’t push marks up. Pick a stronger verb that matches the mood.
+            Common words don’t push marks up. Pick stronger ones that matches the mood.
           </p>
 
           <div class="space-y-1.5">
@@ -478,22 +488,22 @@
           <div class="mt-2 p-2 bg-slate-900/50 rounded border border-slate-800">
             <span class="text-[9px] text-green-400 block font-bold mb-1 uppercase tracking-tighter">Rule of Thumb</span>
             <p class="text-[10px] text-slate-300 italic leading-tight">
-              If your verb could fit in every story, it’s probably too basic.
+              If your word could fit in every story, it’s probably too basic.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- PASSIVE -->
+      <!-- SYNTAX KATANA (Previously Passive) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('red', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 shrink-0"></span> Passive
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_#ef4444]"></span> Passive Voice
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-red-400 block mb-1 text-sm uppercase tracking-wider">Passive Voice <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-red-400 block mb-1 text-sm uppercase tracking-wider italic">Passive Voice <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
-            Too many <em>was / were</em> sentences sound weak. Make the character do the action.
+            Too many <em>was / were / is / are / has / had / have / be / been / been / being</em> in sentences sound weak. State the action directly.
           </p>
 
           <div class="grid grid-cols-2 gap-2">
@@ -510,28 +520,28 @@
               <p class="text-[10px] text-green-400 font-bold italic">"Smoke crawled across the ceiling."</p>
             </div>
             <div class="p-2 bg-slate-900/50 rounded border border-red-900/30">
-              <p class="text-[10px] text-slate-400 line-through italic mb-1">"He was hit by the ball."</p>
-              <p class="text-[10px] text-green-400 font-bold italic">"The ball smashed into his ribs."</p>
+              <p class="text-[10px] text-slate-400 line-through italic mb-1">"He had been sick all week."</p>
+              <p class="text-[10px] text-green-400 font-bold italic">"All week, sickness gripped him."</p>
             </div>
           </div>
 
           <div class="mt-2 p-2 bg-slate-900/50 rounded border border-red-900/30">
             <span class="text-[9px] text-red-400 block font-bold mb-1 uppercase tracking-tighter">Spot it fast</span>
             <p class="text-[10px] text-slate-300 italic leading-tight">
-              Watch for: was, were, is, are, been, being + (usually) a past-tense verb.
+              Watch for: was, were, is, are, has, had, have, be, been, being + (usually) a past-tense verb.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- FILTER -->
+      <!-- FILTER ASSASSIN (Previously Filter) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('pur', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-500 shrink-0"></span> Filter
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-500 shrink-0 shadow-[0_0_8px_#a855f7]"></span> Filter Words
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-purple-400 block mb-2 text-sm uppercase tracking-wider">Filter Words <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-purple-400 block mb-2 text-sm uppercase tracking-wider italic">Filter Words <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Words like <em>saw, heard, watched, knew, noticed, realised, decided, felt, could tell, could see/hear</em> push the reader away from the moment.
           </p>
@@ -564,14 +574,14 @@
         </div>
       </div>
 
-      <!-- ADVERB -->
+      <!-- DESCRIPTOR DAGGERS (Previously Adverb) -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('yel', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400 shrink-0"></span> Adverb
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400 shrink-0 shadow-[0_0_8px_#eab308]"></span> Telling Words
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-yellow-400 block mb-2 text-sm uppercase tracking-wider">Adverbs (-ly) <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-yellow-400 block mb-2 text-sm uppercase tracking-wider italic">Telling Words (-ly) <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Adverbs often tell instead of show. Replace the -ly word with a stronger action.
           </p>
@@ -607,11 +617,11 @@
       <!-- REPETITION -->
       <div class="outline-none cursor-pointer shrink-0 transition-opacity duration-300" style="opacity: 1;" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()" onclick="toggleFilter('ora', this)">
         <div class="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity">
-          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-orange-500 shrink-0"></span> REPETITION
+          <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_#f97316]"></span> REPETITION
         </div>
 
         <div class="js-tooltip-content hidden">
-          <strong class="text-orange-400 block mb-1 text-sm uppercase tracking-wider">Repetition <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal">(Click pill to toggle highlight)</span></strong>
+          <strong class="text-orange-400 block mb-1 text-sm uppercase tracking-wider italic">Repetition <span class="text-[9px] text-slate-400 ml-2 normal-case font-normal not-italic">(Click pill to toggle highlight)</span></strong>
           <p class="text-xs text-slate-300 leading-relaxed mb-2">
             Repeating the same strong word too close together sounds clunky. Swap it, combine, or re-shape the sentence.
           </p>
@@ -654,7 +664,7 @@
     </div>
 
     <script>
-        // --- DATA DEFINITIONS (PRESERVED) ---
+        // --- DATA DEFINITIONS (PRESERVED PERFECTLY) ---
         const promptsData = {
             narrative: ["The Secret Door", "A Huge Mistake", "The Best Invention", "The Golden Key", "Lost", "The Discovery", "The Abandoned House", "The Time Machine", "The Storm", "The Truth", "One Lie", "Under Fire", "Courage", "Too Kind", "Survivor", "Under Pressure", "It Just Happened!", "Get Out!", "Who Knew?", "The Cave"],
             persuasive: ["Should school be 4 days a week?", "Mobile Phones: Yes or No?", "Is homework necessary?", "Are video games good for you?", "Should school uniforms be compulsory?", "Do we need zoos?", "Should students choose all their own subjects?", "Should junk food be allowed at school?", "Should phones have an age limit?", "Should school start later in the morning?", "Should students be paid for good grades?", "Should AI be allowed for school work?", "Should sport be compulsory at school?", "Should students have a longer lunch break?", "Should schools ban energy drinks?", "Should schools teach financial skills?"]
@@ -840,7 +850,8 @@
             document.body.classList.remove('zen-focus');
         }
 
-        // Expose handleInteraction globally
+        // Expose handleInteraction globally and set up listener to avoid execution errors
+        document.addEventListener('mousemove', handleInteraction);
         window.handleInteraction = handleInteraction;
 
         function handleTyping() {
@@ -930,9 +941,10 @@
             let metricsHtml = document.getElementById('metrics-container').innerHTML;
             metricsHtml = metricsHtml.replace(/text-slate-500/g, 'color: #475569; font-weight: bold;');
             metricsHtml = metricsHtml.replace(/text-slate-300/g, 'color: #334155;');
-            metricsHtml = metricsHtml.replace(/text-indigo-400/g, 'color: #4f46e5; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-indigo-400/g, 'color: #ef4444; font-weight: bold;'); // Changed to Dojo Red
             metricsHtml = metricsHtml.replace(/text-green-400/g, 'color: #16a34a; font-weight: bold;');
             metricsHtml = metricsHtml.replace(/text-red-400/g, 'color: #dc2626; font-weight: bold;');
+            metricsHtml = metricsHtml.replace(/text-red-500/g, 'color: #ef4444; font-weight: bold;'); // Mapped red-500
             metricsHtml = metricsHtml.replace(/text-orange-400/g, 'color: #ea580c; font-weight: bold;');
             metricsHtml = metricsHtml.replace(/text-blue-400/g, 'color: #2563eb; font-weight: bold;');
             
@@ -949,7 +961,7 @@
                 if (checkedDevices.length > 0) {
                     devicesHtml = `
                         <div style="margin-top: 12px; background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px;">
-                            <div style="color: #ea580c; font-weight: bold; text-transform: uppercase; font-size: 10px; margin-bottom: 6px; letter-spacing: 1px;">Literary Devices Included</div>
+                            <div style="color: #ea580c; font-weight: bold; text-transform: uppercase; font-size: 10px; margin-bottom: 6px; letter-spacing: 1px;">Advanced Buffs Activated</div>
                             <div style="color: #9a3412; font-size: 12px; font-weight: 600;">${checkedDevices.join(' • ')}</div>
                         </div>
                     `;
@@ -960,7 +972,7 @@
                 <style>
                     /* Removed max-width, margins, and paddings so jsPDF handles A4 sizing natively */
                     .pdf-container { font-family: 'Inter', sans-serif; color: #0f172a; background: #fff; width: 100%; box-sizing: border-box; }
-                    .pdf-title { color: #4f46e5; text-align: center; margin-bottom: 5px; font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+                    .pdf-title { color: #ef4444; text-align: center; margin-bottom: 5px; font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; font-style: italic; }
                     .pdf-prompt { color: #64748b; text-align: center; font-style: italic; margin-top: 0; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
                     .pdf-wordcount { color: #475569; text-align: center; font-size: 12px; font-weight: 500; margin-top: 0; }
                     .pdf-divider { margin: 20px 0; border: 0; border-top: 2px solid #e2e8f0; }
@@ -978,17 +990,17 @@
                     .pdf-text .c-yel { color: #a16207; text-decoration: underline; text-decoration-style: double; text-underline-offset: 3px; font-weight: 700; }
                     
                     /* Metrics Section */
-                    .pdf-metrics-title { color: #4f46e5; font-size: 14px; margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+                    .pdf-metrics-title { color: #ef4444; font-size: 14px; margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-style: italic; }
                     .pdf-metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 11px; }
                 </style>
                 <div class="pdf-container">
-                    <h1 class="pdf-title">NAPLAN Writing Report</h1>
+                    <h1 class="pdf-title">Writing Dojo: Combat Report</h1>
                     <h3 class="pdf-prompt">${title}</h3>
-                    <p class="pdf-wordcount">Word Count: <strong>${wordCount}</strong></p>
+                    <p class="pdf-wordcount">Arena Points: <strong>${wordCount}</strong></p>
                     <hr class="pdf-divider" />
                     <div class="pdf-text">${textHtml}</div>
                     <hr class="pdf-divider" />
-                    <h2 class="pdf-metrics-title">Style & Flow Metrics</h2>
+                    <h2 class="pdf-metrics-title">Post-Match Combat Stats</h2>
                     <div class="pdf-metrics-grid">
                         ${metricsHtml}
                     </div>
@@ -998,7 +1010,7 @@
             
             const opt = {
                 margin:       0.5, // Standard 0.5-inch margin all around
-                filename:     'NAPLAN_Writing_Report.pdf',
+                filename:     'Writing_Dojo_Combat_Report.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true }, // Removed windowWidth 800 to avoid conflicts
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -1037,28 +1049,28 @@
             // mailto: links fail silently if they exceed ~2000 characters.
             // We must truncate the essay string to guarantee the mail application opens.
             if (text.length > 800) {
-                text = text.substring(0, 800) + "\n\n... [Student text truncated due to email size limits. Please use 'Export PDF' to view and save the complete essay.]";
+                text = text.substring(0, 800) + "\n\n... [Student text truncated due to email size limits. Please use 'DOWNLOAD INTEL (PDF)' to view and save the complete essay.]";
             }
 
-            let body = `NAPLAN WRITING REPORT\n`;
-            body += `Prompt: ${title}\n`;
-            body += `Word Count: ${wordCount}\n\n`;
+            let body = `WRITING DOJO: COMBAT REPORT\n`;
+            body += `Mission: ${title}\n`;
+            body += `Arena Points: ${wordCount}\n\n`;
             
             body += `--- STUDENT TEXT ---\n\n`;
             body += `${text}\n\n`;
             
-            body += `--- STYLE & FLOW METRICS ---\n\n`;
+            body += `--- COMBAT STATS ---\n\n`;
             body += `${metricsText}\n`;
 
             if (genre === 'narrative') {
                 const checkedBoxes = document.querySelectorAll('#devices-list input[type="checkbox"]:checked');
                 const checkedDevices = Array.from(checkedBoxes).map(cb => cb.nextElementSibling.innerText);
                 if (checkedDevices.length > 0) {
-                    body += `\nLITERARY DEVICES INCLUDED:\n${checkedDevices.join(' • ')}\n`;
+                    body += `\nADVANCED BUFFS ACTIVATED:\n${checkedDevices.join(' • ')}\n`;
                 }
             }
 
-            const subject = encodeURIComponent(`NAPLAN Writing Report: ${title}`);
+            const subject = encodeURIComponent(`Writing Dojo Combat Report: ${title}`);
             const mailtoBody = encodeURIComponent(body);
             
             // Instantly update the <a> tag's href right before the browser processes the click.
@@ -1091,13 +1103,13 @@
             const valDisplay = document.getElementById('time-val');
             
             if (isNoLimit) {
-                btn.classList.add('bg-blue-600', 'text-white', 'border-blue-500');
+                btn.classList.add('bg-red-600', 'text-white', 'border-red-500');
                 btn.classList.remove('bg-slate-800', 'text-slate-400', 'hover:bg-slate-700');
                 slider.style.opacity = '0.5';
                 slider.disabled = true;
                 valDisplay.innerText = '∞';
             } else {
-                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-500');
+                btn.classList.remove('bg-red-600', 'text-white', 'border-red-500');
                 btn.classList.add('bg-slate-800', 'text-slate-400', 'hover:bg-slate-700');
                 slider.style.opacity = '1';
                 slider.disabled = false;
@@ -1108,13 +1120,13 @@
         function setGenre(g) {
             genre = g;
             document.getElementById('char-name-group').style.display = g === 'narrative' ? 'block' : 'none';
-            document.getElementById('current-genre').innerText = g.charAt(0).toUpperCase() + g.slice(1);
+            document.getElementById('current-genre').innerText = g === 'narrative' ? 'The Story Quest' : 'The Persuasive Duel';
             paragraphCount = g === 'narrative' ? 6 : 4;
             
             const nBtn = document.getElementById('setup-btn-narrative');
             const pBtn = document.getElementById('setup-btn-persuasive');
-            nBtn.className = g === 'narrative' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
-            pBtn.className = g === 'persuasive' ? 'flex-1 py-3 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold transition' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-bold transition';
+            nBtn.className = g === 'narrative' ? 'flex-1 py-3 rounded-lg border-2 border-red-600 bg-red-600 text-white font-black transition uppercase italic' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-black transition uppercase italic';
+            pBtn.className = g === 'persuasive' ? 'flex-1 py-3 rounded-lg border-2 border-red-600 bg-red-600 text-white font-black transition uppercase italic' : 'flex-1 py-3 rounded-lg border-2 border-slate-700 bg-slate-800 font-black transition uppercase italic';
             
             // Only generate a prompt if one hasn't been set yet or if switching genres
             if (!document.getElementById('prompt-input').value || 
@@ -1173,12 +1185,12 @@
         function hideTooltip() { document.getElementById('global-tooltip').classList.remove('active'); }
 
         function startCountdown() {
-            document.getElementById('prompt-display').innerText = `"${document.getElementById('prompt-input').value || 'Writing Task'}"`;
+            document.getElementById('prompt-display').innerText = `"${document.getElementById('prompt-input').value || 'Mission Objective'}"`;
             document.getElementById('target-display').innerText = document.getElementById('target-slider').value;
             document.getElementById('setup-screen').classList.add('hidden');
             const overlay321 = document.getElementById('countdown-overlay');
             overlay321.classList.remove('hidden');
-            const sequence = genre === 'narrative' ? ["1 Character", "1 Place", "1 Problem", "1 Minute", "GO!"] : ["Opinion", "Reasons", "Proof", "GO!"];
+            const sequence = genre === 'narrative' ? ["1 Character", "1 Place", "1 Problem", "1 Minute", "BEGIN!"] : ["Opinion", "Reasons", "Proof", "BEGIN!"];
             let step = 0;
             const number = document.getElementById('countdown-number');
             number.innerText = sequence[step];
@@ -1257,11 +1269,11 @@
 
         function renderSidebar() {
             document.getElementById('structure-list').innerHTML = structures[genre].map((s) => `
-                <div class="group cursor-pointer outline-none border-l-4 border-slate-700 pl-3 py-1.5 hover:border-blue-400 focus-within:border-blue-400 transition-colors" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
-                    <div class="font-black text-slate-300 text-[10px] uppercase transition-colors group-hover:text-blue-400">${s.title}</div>
+                <div class="group cursor-pointer outline-none border-l-4 border-slate-700 pl-3 py-1.5 hover:border-red-500 focus-within:border-red-500 transition-colors" tabindex="0" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip()">
+                    <div class="font-black text-slate-300 text-[10px] uppercase transition-colors group-hover:text-red-500 italic">${s.title}</div>
                     <div class="text-slate-500 mt-1 text-[10px] leading-tight">${s.desc}</div>
                     <div class="js-tooltip-content hidden">
-                        <strong class="text-blue-400 block mb-1 text-[11px] uppercase tracking-wider">${s.title.split(' ')[0]}</strong>
+                        <strong class="text-red-500 block mb-1 text-[11px] uppercase tracking-wider italic">${s.title.split(' ')[0]}</strong>
                         <p class="text-[11px] text-slate-300 leading-relaxed">${s.tooltip}</p>
                     </div>
                 </div>`).join('');
@@ -1289,7 +1301,7 @@
             const targetWordCount = parseInt(document.getElementById('target-slider').value);
             if (words >= targetWordCount && !hasHitTarget && targetWordCount > 0) {
                 hasHitTarget = true;
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ef4444', '#ffffff', '#000000'] });
             }
             
             if (genre === 'narrative') {
@@ -1333,7 +1345,7 @@
             const editor = document.getElementById('editor');
             const overlay = document.getElementById('analysis-overlay');
             if (isAnalysisActive) {
-                btn.innerText = "HIDE ANALYSIS"; btn.classList.add('pill-active');
+                btn.innerText = "HIDE TACTICAL HUD"; btn.classList.add('pill-active');
                 overlay.classList.remove('hidden'); editor.classList.add('opacity-30'); 
                 legend.classList.remove('hidden');
                 document.getElementById('structure-panel').classList.add('hidden');
@@ -1341,7 +1353,7 @@
                 document.getElementById('advanced-metrics-panel').classList.remove('hidden');
                 runAnalysis(); generateAdvancedMetrics();
             } else {
-                btn.innerText = "SHOW ANALYSIS"; btn.classList.remove('pill-active');
+                btn.innerText = "ACTIVATE TACTICAL HUD"; btn.classList.remove('pill-active');
                 overlay.classList.add('hidden'); editor.classList.remove('opacity-30'); 
                 legend.classList.add('hidden');
                 document.getElementById('structure-panel').classList.remove('hidden');
@@ -1369,15 +1381,15 @@
             };
             let totalSyllables = 0; words.forEach(w => totalSyllables += countSyllables(w));
             let readabilityGradeNum = Math.round((0.39 * avg) + (11.8 * (totalSyllables / (words.length || 1))) - 15.59);
-            let readabilityGrade = words.length > 0 ? "Grade " + Math.max(1, readabilityGradeNum) : "N/A";
+            let readabilityGrade = words.length > 0 ? "Tier " + Math.max(1, readabilityGradeNum) : "N/A";
             
             document.getElementById('metrics-container').innerHTML = `
                 <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700">
-                    <div><div class="text-[10px] uppercase font-bold text-slate-500">Readability</div><div class="text-xs text-slate-300">Grade Level Progress</div></div>
-                    <div class="text-xl font-black text-indigo-400">${readabilityGrade}</div>
+                    <div><div class="text-[10px] uppercase font-bold text-slate-500">Combat Readability</div><div class="text-xs text-slate-300">Grade Level Progress</div></div>
+                    <div class="text-xl font-black text-red-500">${readabilityGrade}</div>
                 </div>
                 <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700">
-                    <div><div class="text-[10px] uppercase font-bold text-slate-500">Sentence Pacing</div><div class="text-xs text-slate-300">Target: 12-20 words</div></div>
+                    <div><div class="text-[10px] uppercase font-bold text-slate-500">Strike Pacing</div><div class="text-xs text-slate-300">Target: 12-20 words</div></div>
                     <div class="text-xl font-black ${avg > 22 ? 'text-orange-400' : 'text-green-400'}">${avg}</div>
                 </div>
                 <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700 space-y-2">
